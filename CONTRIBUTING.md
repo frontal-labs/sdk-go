@@ -6,8 +6,8 @@ Install Go 1.22 or later. Follow [`docs/ONBOARDING.md`](./docs/ONBOARDING.md) to
 
 ## Make a change
 
-- Put shared transport and error behavior in `internal/core`.
-- Put the unified client in `pkg/sdk` and each service's models and operations in its matching `pkg/<service>` package.
+- Keep public client behavior in `pkg/resources` and shared models and helpers in `pkg/authentication`, `pkg/handlers`, `pkg/headers`, and `pkg/utils`. Keep cross-package integration tests under `tests/` and unit tests beside their source.
+- Use `resources.Endpoint` descriptors generated from `contracts/sdk-endpoints.json`; do not guess endpoint paths or schemas.
 - Keep tests beside the source they exercise in `*_test.go` files.
 - Use the native Go formatter, linter, build tool, and test runner.
 - Keep contracts and generated reports synchronized when public endpoint coverage changes.

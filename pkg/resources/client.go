@@ -1,5 +1,5 @@
-// Package frontal provides the Frontal API client.
-package frontal
+// Package resources provides the Frontal API client and endpoint catalog.
+package resources
 
 import (
 	"context"
@@ -13,20 +13,18 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frontal-labs/sdk-go/authentication"
-	"github.com/frontal-labs/sdk-go/handlers"
-	"github.com/frontal-labs/sdk-go/headers"
-	"github.com/frontal-labs/sdk-go/internal/core"
-	"github.com/frontal-labs/sdk-go/models"
-	"github.com/frontal-labs/sdk-go/utils"
+	"github.com/frontal-labs/sdk-go/pkg/authentication"
+	"github.com/frontal-labs/sdk-go/pkg/handlers"
+	"github.com/frontal-labs/sdk-go/pkg/headers"
+	"github.com/frontal-labs/sdk-go/pkg/utils"
 )
 
 const (
 	// DefaultBaseURL is the default Frontal API URL.
 	DefaultBaseURL = utils.DefaultBaseURL
 	// DefaultTimeout is applied when the caller does not provide an HTTP client or timeout.
-	DefaultTimeout  = 30 * time.Second
-	defaultUserAgent = "frontal-go/0.1.0"
+	DefaultTimeout    = 30 * time.Second
+	defaultUserAgent  = "frontal-go/0.1.0"
 	defaultMaxRetries = 2
 	maxRetriesLimit   = 8
 )
@@ -37,7 +35,7 @@ var ErrForeignRequest = errors.New("frontal: request URL must use the configured
 type Client struct {
 	baseURL    *url.URL
 	apiKey     authentication.APIKey
-	transport  *core.Transport
+	transport  *httpTransport
 	userAgent  string
 	maxRetries int
 }
@@ -80,7 +78,7 @@ func NewClient(apiKey string, options ...Option) (*Client, error) {
 	return &Client{
 		baseURL:    baseURL,
 		apiKey:     key,
-		transport:  core.NewTransport(config.httpClient, config.timeout),
+		transport:  newHTTPTransport(config.httpClient, config.timeout),
 		userAgent:  config.userAgent,
 		maxRetries: config.maxRetries,
 	}, nil
@@ -223,7 +221,7 @@ func (client *Client) Request(ctx context.Context, method, endpoint string, body
 }
 
 // Call sends a request described by the generated endpoint inventory.
-func (client *Client) Call(ctx context.Context, request models.Request, out any) error {
+func (client *Client) Call(ctx context.Context, request Request, out any) error {
 	method := strings.ToUpper(strings.TrimSpace(request.Endpoint.Method))
 	if method == "STREAM" {
 		return errors.New("frontal: use Stream or StreamEvents for streaming endpoints")
@@ -285,7 +283,7 @@ func (client *Client) request(ctx context.Context, method, endpoint string, path
 
 // Stream sends a request for a streaming endpoint and returns the open response body.
 // The caller must close the returned response body.
-func (client *Client) Stream(ctx context.Context, request models.Request) (*http.Response, error) {
+func (client *Client) Stream(ctx context.Context, request Request) (*http.Response, error) {
 	if client == nil || client.baseURL == nil || client.transport == nil {
 		return nil, errors.New("frontal: client is not configured")
 	}
@@ -314,7 +312,7 @@ func (client *Client) Stream(ctx context.Context, request models.Request) (*http
 	if request.Headers.Get(headers.Accept) == "" {
 		httpRequest.Header.Set(headers.Accept, "text/event-stream")
 	}
-	response, err := client.Do(httpRequest)
+	response, err := client.transport.DoStream(httpRequest)
 	if err != nil {
 		return nil, err
 	}
@@ -325,7 +323,7 @@ func (client *Client) Stream(ctx context.Context, request models.Request) (*http
 }
 
 // StreamEvents decodes a JSON Server-Sent Event stream from a generated endpoint.
-func StreamEvents[T any](ctx context.Context, client *Client, request models.Request, handle func(models.Event[T]) error) error {
+func StreamEvents[T any](ctx context.Context, client *Client, request Request, handle func(handlers.Event[T]) error) error {
 	response, err := client.Stream(ctx, request)
 	if err != nil {
 		return err
@@ -335,7 +333,7 @@ func StreamEvents[T any](ctx context.Context, client *Client, request models.Req
 }
 
 // DoJSON sends a contract-backed request and returns its decoded JSON response.
-func DoJSON[T any](ctx context.Context, client *Client, request models.Request) (T, error) {
+func DoJSON[T any](ctx context.Context, client *Client, request Request) (T, error) {
 	var result T
 	if client == nil {
 		return result, errors.New("frontal: client is nil")

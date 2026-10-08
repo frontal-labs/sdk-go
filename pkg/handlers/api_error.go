@@ -1,5 +1,4 @@
-// Package models defines shared response models used by the Frontal SDK.
-package models
+package handlers
 
 import (
 	"encoding/json"

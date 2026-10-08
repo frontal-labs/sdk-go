@@ -1,5 +1,5 @@
-// Package models defines shared request, endpoint, event, and error models.
-package models
+// Package resources provides endpoint descriptors and request data for Frontal API resources.
+package resources
 
 import (
 	"net/http"
@@ -20,11 +20,4 @@ type Request struct {
 	Query      url.Values
 	Headers    http.Header
 	Body       any
-}
-
-// Event is a decoded Server-Sent Event.
-type Event[T any] struct {
-	ID    string
-	Name  string
-	Data  T
 }

@@ -1,3 +1,3 @@
 # Go examples
 
-Examples in this repository use Go project conventions. Each runnable sample will pin or reference the local SDK modules and avoid live credentials by default. The current API runtime is not implemented, so the guide contains setup and module navigation only.
+The root README includes a runnable generic client example backed by the generated endpoint catalog. Set `FRONTAL_API_KEY` before running it against the live API. The SDK also supports `httptest.Server` through `frontal.WithBaseURL` and `frontal.WithHTTPClient` for local examples and integration checks.

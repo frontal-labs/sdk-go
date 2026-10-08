@@ -2,7 +2,7 @@
   "name": "Frontal Go SDK",
   "language": "Go",
   "version": "0.1.0",
-  "status": "scaffold",
+  "status": "foundation",
   "documents": [
     {
       "path": ".github/BRANCH_PROTECTION.md",
@@ -33,10 +33,6 @@
       "title": "LICENSE"
     },
     {
-      "path": "PLAN.md",
-      "title": "PLAN"
-    },
-    {
       "path": "README.md",
       "title": "README"
     },
@@ -47,6 +43,10 @@
     {
       "path": "SECURITY.md",
       "title": "SECURITY"
+    },
+    {
+      "path": "cmd/README.md",
+      "title": "README"
     },
     {
       "path": "contracts/README.md",
@@ -109,83 +109,7 @@
       "title": "SDKS GUIDE"
     },
     {
-      "path": "internal/core/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/agents/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/ai/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/audit/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/auth/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/billing/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/blob/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/connectors/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/data/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/governance/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/lineage/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/observability/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/ontology/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/pipelines/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/sandbox/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/schedules/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/sdk/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/testutil/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/webhooks/README.md",
-      "title": "README"
-    },
-    {
-      "path": "pkg/workflows/README.md",
+      "path": "pkg/sdk/internal/core/README.md",
       "title": "README"
     },
     {
@@ -195,6 +119,10 @@
     {
       "path": "skills/frontal-sdk/SKILL.md",
       "title": "SKILL"
+    },
+    {
+      "path": "tests/README.md",
+      "title": "README"
     }
   ]
 }

@@ -9,8 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/frontal-labs/sdk-go/headers"
-	"github.com/frontal-labs/sdk-go/models"
+	"github.com/frontal-labs/sdk-go/pkg/headers"
 )
 
 const maxErrorBodyBytes = 1 << 20
@@ -76,7 +75,7 @@ func decodeAPIError(response *http.Response) error {
 		body = body[:maxErrorBodyBytes]
 	}
 
-	apiError := &models.APIError{
+	apiError := &APIError{
 		StatusCode: response.StatusCode,
 		RequestID:  response.Header.Get(headers.RequestID),
 	}
@@ -96,7 +95,7 @@ func decodeAPIError(response *http.Response) error {
 	return apiError
 }
 
-func decodeErrorPayload(body []byte, target *models.APIError) bool {
+func decodeErrorPayload(body []byte, target *APIError) bool {
 	var envelope struct {
 		Error json.RawMessage `json:"error"`
 	}

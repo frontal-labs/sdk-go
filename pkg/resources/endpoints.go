@@ -1,6 +1,6 @@
-//go:generate python3 ../scripts/generate_endpoints.py
+//go:generate python3 ../../scripts/generate_endpoints.py
 
-package models
+package resources
 
 import "strings"
 

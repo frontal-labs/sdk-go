@@ -5,12 +5,12 @@ description: Guidance for adding or reviewing integrations using the Frontal Go 
 
 # Frontal Go SDK
 
-This repository is a scaffold. Check the matching Go module README and source before using an operation; an endpoint in `contracts/` does not guarantee a public method exists. Follow the idioms and toolchain documented in this repository.
+The repository provides a generic Go client and generated endpoint descriptors. Check the committed contracts before using an operation; descriptors provide route shapes, while endpoint-specific convenience methods and typed response models are not generated yet. Follow the idioms and toolchain documented in this repository.
 
 ## Configuration
 
-The client configuration uses `FRONTAL_API_KEY` (`frt_...`) and `FRONTAL_API_URL` (default `https://api.frontal.dev/v1`). See the root `.env.example`; this language does not load `.env` files automatically.
+The client reads `FRONTAL_API_KEY` and optional `FRONTAL_API_URL` and `FRONTAL_TIMEOUT` settings. The default URL is `https://api.frontal.dev/v1`; this language does not load `.env` files automatically.
 
 ## Modules
 
-See [the architecture guide](../../docs/ARCHITECTURE.md) and package READMEs under `../../pkg/`.
+See [the architecture guide](../../docs/ARCHITECTURE.md) and [the SDK overview](../../docs/OVERVIEW.md).

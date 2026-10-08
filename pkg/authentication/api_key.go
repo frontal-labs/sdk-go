@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/frontal-labs/sdk-go/headers"
+	"github.com/frontal-labs/sdk-go/pkg/headers"
 )
 
 var ErrInvalidAPIKey = errors.New("frontal: API key is empty or contains whitespace")

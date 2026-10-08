@@ -4,5 +4,5 @@
   "status": "not-started",
   "matched": 0,
   "unmatched": 347,
-  "note": "No Go service operations are implemented in this scaffold."
+  "note": "The SDK exposes generic contract-backed requests, but endpoint-specific service methods and typed response models are not implemented."
 }

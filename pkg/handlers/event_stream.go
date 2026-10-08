@@ -8,14 +8,19 @@ import (
 	"fmt"
 	"io"
 	"strings"
-
-	"github.com/frontal-labs/sdk-go/models"
 )
 
 const maxEventLineBytes = 1 << 20
 
 // DecodeEventStream reads Server-Sent Events whose data fields contain JSON values.
-func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func(models.Event[T]) error) error {
+// Event is a decoded Server-Sent Event.
+type Event[T any] struct {
+	ID   string
+	Name string
+	Data T
+}
+
+func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func(Event[T]) error) error {
 	if ctx == nil {
 		return errors.New("frontal: event stream context is required")
 	}
@@ -27,12 +32,12 @@ func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func
 	}
 	scanner := bufio.NewScanner(source)
 	scanner.Buffer(make([]byte, 4096), maxEventLineBytes)
-	var event models.Event[T]
+	var event Event[T]
 	var data []string
 	var lastID string
 	dispatch := func() error {
 		if len(data) == 0 {
-			event = models.Event[T]{ID: lastID}
+			event = Event[T]{ID: lastID}
 			return nil
 		}
 		var value T
@@ -43,7 +48,7 @@ func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func
 		if err := handle(event); err != nil {
 			return fmt.Errorf("frontal: handle event: %w", err)
 		}
-		event = models.Event[T]{ID: lastID}
+		event = Event[T]{ID: lastID}
 		data = data[:0]
 		return nil
 	}

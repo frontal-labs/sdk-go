@@ -1,3 +1,3 @@
 # Go SDK overview
 
-This repository is the Frontal SDK for Go and contains one Go module. Public SDK packages live under `pkg/`, shared runtime implementation lives under `internal/core`, and the root contains developer docs and shared API contract snapshots. Runtime methods will be documented here as they are implemented.
+This repository is the Frontal SDK for Go and contains one Go module. The `pkg/resources` package provides the authenticated API client, generated endpoint catalog, JSON decoding, and streaming entry points. Authentication, HTTP handlers, headers, and URL helpers are separated into `pkg/authentication`, `pkg/handlers`, `pkg/headers`, and `pkg/utils`. Go starter projects are available under `templates/`.
