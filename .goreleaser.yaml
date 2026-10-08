@@ -6,5 +6,8 @@ release:
   github:
     owner: frontal-labs
     name: sdk-go
+  extra_files:
+    - glob: dist/sdk-go-*-source.tar.gz
+    - glob: dist/sbom.spdx.json
 changelog:
   use: github-native

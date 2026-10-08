@@ -1,63 +1,105 @@
 name: Go module release
+
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_call:
+    inputs:
+      tag_name:
+        description: Release tag created by Release Please
+        required: true
+        type: string
+
 permissions:
   contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
-  release:
+  verify:
+    name: Verify release source
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
-      - uses: actions/setup-go@v6
+          ref: ${{ inputs.tag_name || github.ref }}
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.5.0
         with:
-          go-version: stable
+          go-version: "1.23.x"
+          cache: true
+          cache-dependency-path: go.mod
       - name: Validate semver module tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
         run: |
-          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Expected a vMAJOR.MINOR.PATCH tag"
             exit 1
           fi
-          major="${GITHUB_REF_NAME#v}"
+          major="${RELEASE_TAG#v}"
           major="${major%%.*}"
           module_path="$(sed -n 's/^module //p' go.mod)"
           if (( major >= 2 )) && [[ "$module_path" != */v"$major" ]]; then
             echo "Major versions 2 and later require the /v${major} module path suffix"
             exit 1
           fi
-      - name: Install apidiff
-        run: |
-          go install golang.org/x/exp/cmd/apidiff@latest
-          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
       - name: Check API compatibility against latest prior tag
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
         run: |
-          previous_tag="$(git tag --list 'v[0-9]*' --sort=-version:refname | awk -v current="$GITHUB_REF_NAME" '$0 == current { found=1; next } found { print; exit }')"
+          previous_tag="$(git tag --list 'v[0-9]*' --sort=-version:refname | awk -v current="$RELEASE_TAG" '$0 == current { found=1; next } found { print; exit }')"
           if [[ -n "$previous_tag" ]]; then
-            current_major="${GITHUB_REF_NAME#v}"
-            current_major="${current_major%%.*}"
-            previous_major="${previous_tag#v}"
-            previous_major="${previous_major%%.*}"
-            if [[ "$previous_major" == "$current_major" ]]; then
-              bash scripts/check_apidiff.sh "$previous_tag"
-            else
-              echo "Previous release $previous_tag is a different major; skipping API compatibility comparison."
-            fi
-          else
-            echo "No earlier Go release tag exists; skipping the compatibility baseline comparison."
+            current_major="${RELEASE_TAG#v}"; current_major="${current_major%%.*}"
+            previous_major="${previous_tag#v}"; previous_major="${previous_major%%.*}"
+            if [[ "$previous_major" == "$current_major" ]]; then bash scripts/check_apidiff.sh "$previous_tag"; fi
           fi
-      - name: Test release source
+      - name: Build, test, and validate contracts
         run: |
           go build ./...
           go test -race ./...
+          go test -run '^Example' ./...
           python3 scripts/check_contracts.py
-      - name: Publish GitHub release
-        uses: goreleaser/goreleaser-action@v6
+
+  publish:
+    name: Publish GitHub release and attest source
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write
+      id-token: write
+      attestations: write
+      artifact-metadata: write
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
-          version: v2.13.3
-          args: release --clean
+          fetch-depth: 0
+          ref: ${{ inputs.tag_name || github.ref }}
+      - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.5.0
+        with:
+          go-version: stable
+          cache: true
+          cache-dependency-path: go.mod
+      - name: Build source archive
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
+        run: |
+          mkdir -p dist
+          release_sha="$(git rev-parse HEAD)"
+          git archive --format=tar.gz --prefix="sdk-go-${RELEASE_TAG}/" "$release_sha" > "dist/sdk-go-${RELEASE_TAG}-source.tar.gz"
+      - name: Generate source SBOM
+        run: go run github.com/anchore/syft/cmd/syft@v1.41.0 dir:. -o spdx-json=dist/sbom.spdx.json
+      - name: Attest source archive and SBOM
+        uses: actions/attest@e8998f949152b193b063cb0ec769d69d929409be # v2.1.0
+        with:
+          subject-path: dist/sdk-go-${{ inputs.tag_name || github.ref_name }}-source.tar.gz
+          sbom-path: dist/sbom.spdx.json
+      - name: Publish release assets and notes
+        run: go run github.com/goreleaser/goreleaser/v2@v2.13.3 release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
