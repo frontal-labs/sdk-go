@@ -1,0 +1,35 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+
+	"github.com/frontal-labs/sdk-go/pkg/resources"
+)
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	client, err := resources.NewClientFromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	endpoint, ok := resources.FindEndpoint("agents", "GET", "/agents/health")
+	if !ok {
+		log.Fatal("agents health endpoint is missing from the SDK catalog")
+	}
+	var health map[string]any
+	if err := client.Call(ctx, resources.Request{Endpoint: endpoint}, &health); err != nil {
+		log.Fatal(err)
+	}
+	if err := json.NewEncoder(os.Stdout).Encode(health); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}

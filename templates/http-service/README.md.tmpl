@@ -1,0 +1,5 @@
+# {{.Module}}
+
+An HTTP service that exposes a `/health` route backed by Frontal's agents health endpoint. Set `FRONTAL_API_KEY`, then run `go run .`. Set `ADDR` to change the listen address.
+
+The handler forwards request cancellation to the SDK and returns a generic gateway error to callers while logging the upstream error locally.

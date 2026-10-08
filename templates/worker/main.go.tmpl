@@ -1,0 +1,42 @@
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+	"time"
+
+	"github.com/frontal-labs/sdk-go/pkg/resources"
+)
+
+func main() {
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	client, err := resources.NewClientFromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+	ticker := time.NewTicker(30 * time.Second)
+	defer ticker.Stop()
+
+	if err := refresh(ctx, client); err != nil {
+		log.Printf("initial refresh failed: %v", err)
+	}
+	for {
+		select {
+		case <-ctx.Done():
+			return
+		case <-ticker.C:
+			if err := refresh(ctx, client); err != nil {
+				log.Printf("refresh failed: %v", err)
+			}
+		}
+	}
+}
+
+func refresh(ctx context.Context, client *resources.Client) error {
+	return client.Get(ctx, "/agents/health", nil)
+}
