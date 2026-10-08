@@ -1,0 +1,35 @@
+{
+  "$schema": "https://skills.sh/schemas/skills.sh.schema.json",
+  "notGrouped": "bottom",
+  "groupings": [
+    {
+      "title": "Go SDK Engineering",
+      "description": "Go-specific integration, HTTP, and contract maintenance for Frontal.",
+      "skills": [
+        "frontal-sdk",
+        "go-context-http",
+        "go-contract-endpoints",
+        "go-linting",
+        "go-documentation",
+        "go-declarations",
+        "go-context",
+        "go-concurrency",
+        "go-style-core",
+        "go-data-structures",
+        "go-generics",
+        "go-defensive",
+        "go-naming",
+        "go-performance",
+        "go-interfaces",
+        "go-error-handling",
+        "go-testing",
+        "go-functional-options",
+        "go-control-flow",
+        "go-packages",
+        "go-logging",
+        "go-functions",
+        "go-code-review"
+      ]
+    }
+  ]
+}

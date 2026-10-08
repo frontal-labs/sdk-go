@@ -2,6 +2,8 @@
 
 ![Frontal Banner](./banner.png)
 
+[![skills.sh](https://skills.sh/b/frontal-labs/sdk-go)](https://skills.sh/frontal-labs/sdk-go)
+
 One context-first Go client for Frontal AI, agents, workflows, and every other service in the committed endpoint inventory.
 
 ## Quickstart
@@ -64,6 +66,14 @@ python3 scripts/check_contracts.py
 ```
 
 See [`CONTRIBUTING.md`](./CONTRIBUTING.md), [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md), and [`docs/RELEASING.md`](./docs/RELEASING.md).
+
+## Agent skills
+
+Install this repository's Go-specific agent skills with the [skills CLI](https://skills.sh/docs/cli):
+
+```bash
+npx skills add frontal-labs/sdk-go
+```
 
 ## License
 
