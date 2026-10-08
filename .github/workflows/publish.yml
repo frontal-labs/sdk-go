@@ -3,6 +3,12 @@ name: Go module release
 on:
   push:
     tags: ["v*.*.*"]
+  workflow_call:
+    inputs:
+      tag_name:
+        description: Release tag created by Release Please
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -19,18 +25,21 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag_name || github.ref }}
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.5.0
         with:
           go-version: "1.23.x"
           cache: true
       - name: Validate semver module tag
         shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
         run: |
-          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+          if [[ ! "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
             echo "Expected a vMAJOR.MINOR.PATCH tag"
             exit 1
           fi
-          major="${GITHUB_REF_NAME#v}"
+          major="${RELEASE_TAG#v}"
           major="${major%%.*}"
           module_path="$(sed -n 's/^module //p' go.mod)"
           if (( major >= 2 )) && [[ "$module_path" != */v"$major" ]]; then
@@ -41,10 +50,12 @@ jobs:
         run: go install golang.org/x/exp/cmd/apidiff@latest
       - name: Check API compatibility against latest prior tag
         shell: bash
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
         run: |
-          previous_tag="$(git tag --list 'v[0-9]*' --sort=-version:refname | awk -v current="$GITHUB_REF_NAME" '$0 == current { found=1; next } found { print; exit }')"
+          previous_tag="$(git tag --list 'v[0-9]*' --sort=-version:refname | awk -v current="$RELEASE_TAG" '$0 == current { found=1; next } found { print; exit }')"
           if [[ -n "$previous_tag" ]]; then
-            current_major="${GITHUB_REF_NAME#v}"; current_major="${current_major%%.*}"
+            current_major="${RELEASE_TAG#v}"; current_major="${current_major%%.*}"
             previous_major="${previous_tag#v}"; previous_major="${previous_major%%.*}"
             if [[ "$previous_major" == "$current_major" ]]; then bash scripts/check_apidiff.sh "$previous_tag"; fi
           fi
@@ -69,21 +80,25 @@ jobs:
       - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           fetch-depth: 0
+          ref: ${{ inputs.tag_name || github.ref }}
       - uses: actions/setup-go@0a12ed9d6a96ab950c8f026ed9f722fe0da7ef32 # v5.5.0
         with:
           go-version: stable
           cache: true
       - name: Build source archive
+        env:
+          RELEASE_TAG: ${{ inputs.tag_name || github.ref_name }}
         run: |
           mkdir -p dist
-          git archive --format=tar.gz --prefix="sdk-go-${GITHUB_REF_NAME}/" "$GITHUB_SHA" > "dist/sdk-go-${GITHUB_REF_NAME}-source.tar.gz"
+          release_sha="$(git rev-parse HEAD)"
+          git archive --format=tar.gz --prefix="sdk-go-${RELEASE_TAG}/" "$release_sha" > "dist/sdk-go-${RELEASE_TAG}-source.tar.gz"
       - name: Generate source SBOM
         run: |
           go run github.com/anchore/syft/cmd/syft@v1.41.0 dir:. -o spdx-json=dist/sbom.spdx.json
       - name: Attest source archive and SBOM
         uses: actions/attest@e8998f949152b193b063cb0ec769d69d929409be # v2.1.0
         with:
-          subject-path: dist/sdk-go-${{ github.ref_name }}-source.tar.gz
+          subject-path: dist/sdk-go-${{ inputs.tag_name || github.ref_name }}-source.tar.gz
           sbom-path: dist/sbom.spdx.json
       - name: Install GoReleaser
         run: go install github.com/goreleaser/goreleaser/v2@v2.13.3
