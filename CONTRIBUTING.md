@@ -2,7 +2,7 @@
 
 ## Set up
 
-Install Go 1.22 or 1.23, gofumpt, goimports, golangci-lint, lefthook, Node.js, and npm. Follow [`docs/ONBOARDING.md`](./docs/ONBOARDING.md) to prepare the local environment.
+Install Go 1.22 or 1.23 and the format, lint, and hook tools listed in [`docs/ONBOARDING.md`](./docs/ONBOARDING.md). Node.js and npm are only needed for the local commit-message hook.
 
 ## Make a change
 
@@ -14,6 +14,7 @@ Install Go 1.22 or 1.23, gofumpt, goimports, golangci-lint, lefthook, Node.js, a
 - Add API documentation and runnable Go examples for public README usage snippets.
 - Record user-visible changes in `CHANGELOG.md` and use `type(scope): summary` commit subjects.
 - Install the Git hooks with `lefthook install`; commit subjects follow Conventional Commits.
+- Use Conventional Commit subjects (`feat:`, `fix:`, `docs:`, `chore:`, etc.). `feat` creates a minor release candidate and `fix` creates a patch release candidate; mark breaking changes with `!` or a `BREAKING CHANGE:` footer.
 
 ## Before opening a pull request
 

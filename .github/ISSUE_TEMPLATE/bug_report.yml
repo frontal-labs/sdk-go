@@ -27,7 +27,9 @@ body:
     id: reproduction
     attributes:
       label: Minimal reproduction
-      render: shell
+    render: shell
+    validations:
+      required: true
   - type: checkboxes
     id: checks
     attributes:

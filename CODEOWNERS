@@ -3,4 +3,6 @@
 /contracts/ @sdk-team/maintainers
 /docs/ @sdk-team/maintainers
 /pkg/resources/ @sdk-team/core
-/pkg/resources/ @sdk-team/core
+/pkg/ @sdk-team/core
+/templates/ @sdk-team/core
+/.github/workflows/ @sdk-team/maintainers
