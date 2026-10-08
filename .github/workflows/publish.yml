@@ -55,7 +55,7 @@ jobs:
           go test -race ./...
           python3 scripts/check_contracts.py
       - name: Publish GitHub release
-        uses: goreleaser/goreleaser-action@v6
+        uses: goreleaser/goreleaser-action@v7
         with:
           version: v2.13.3
           args: release --clean
