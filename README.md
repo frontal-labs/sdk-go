@@ -1,5 +1,9 @@
 # Frontal Go SDK
 
+![Frontal Banner](./banner.png)
+
+**Frontal Go SDK library.**
+
 Frontal's Go SDK is a single Go module. The public client and contract backed endpoint catalog live in `pkg/resources`; authentication, HTTP handling, headers, and URL helpers are separated into focused support packages.
 
 ## Package layout
