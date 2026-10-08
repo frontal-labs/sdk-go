@@ -1,12 +1,7 @@
-# Go release checklist
+# Go release process
 
-This module uses an unchanged import path, so release tags use `vMAJOR.MINOR.PATCH` (no `/v2` suffix before major version 2). Pushing a tag triggers GoReleaser to publish the GitHub release; the Go module proxy indexes the public tag automatically.
+Release Please tracks Conventional Commits on `main` and opens a release pull request that updates `CHANGELOG.md`. Merge that PR after required checks pass to create the `vMAJOR.MINOR.PATCH` tag and GitHub Release. The tag workflow validates the module and API compatibility, creates a source archive and SPDX SBOM, and publishes attestations. Go's module proxy indexes the public tag automatically; there is no separate registry upload.
 
-Before a release, update `CHANGELOG.md`, pass CI on Go 1.22 and 1.23, and check the public API against the latest release in the same major version with `apidiff`. The compatibility check is skipped when crossing a major version because breaking changes are allowed and the Go import path changes for v2 and later. `v1.0.0` is the first release and has no prior Go release tag to compare.
+This module uses import path `github.com/frontal-labs/sdk-go` for v1. Major versions v2 and later require a matching `/vN` suffix. The compatibility check is skipped across major versions. Use `feat` for minor changes, `fix` for patches, and a breaking marker (`!` or `BREAKING CHANGE:`) for major changes.
 
-```bash
-git tag -s v1.0.0 -m "Release v1.0.0"
-git push origin v1.0.0
-```
-
-The tag is the publication point for Go consumers. Run `go list -m github.com/frontal-labs/sdk-go@v1.0.0` after the proxy indexes it. See [PUBLISHING](./PUBLISHING.md) for repository permissions and release ownership.
+Protect the `release` environment with required reviewers. See [the repository settings checklist](../.github/BRANCH_PROTECTION.md) for environment, branch, tag, and security settings.
