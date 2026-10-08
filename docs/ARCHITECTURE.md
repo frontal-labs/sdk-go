@@ -1,10 +1,10 @@
 # Go SDK architecture
 
-The repository is one Go module. The root `frontal` package provides a unified client and service namespaces. `pkg/resources` owns the shared HTTP transport and generated route catalog; authentication, HTTP handling, headers, and URL utilities stay in focused packages.
+The repository is one Go module. The root `frontal` package provides a unified client and service namespaces. `pkg/resources` owns the shared HTTP transport, request types, and generated route catalog; authentication, HTTP handling, headers, and URL utilities stay in focused packages.
 
 ## Package layout
 
-- `client.go` configures the client from functional options and `FRONTAL_*` environment variables.
+- `client.go` configures the client from functional options and `FRONTAL_*` environment variables, then exposes one service field for each contract group: `AI`, `Agents`, `Audit`, `Auth`, `Billing`, `Blob`, `Connectors`, `Data`, `Governance`, `Lineage`, `Observability`, `Ontology`, `Pipelines`, `React`, `Sandbox`, `Schedules`, `Webhooks`, and `Workflows`.
 - `service.go` scopes endpoint calls to each contract service and provides generic page, polling, and SSE helpers.
 - `pkg/resources` owns request/endpoint types, the shared transport, retry policy, and generated endpoint catalog.
 - `pkg/authentication` validates API keys and applies Bearer authentication.
@@ -19,13 +19,13 @@ The repository is one Go module. The root `frontal` package provides a unified c
 
 `Application → frontal.Client → Service → resources.Client → authentication + headers → net/http → Frontal API`
 
-`Service.Call` sends an inventory-backed operation with positional path parameters, query values, custom headers, and a JSON body. `Client.Request` and `Client.Core` support direct requests outside the inventory. `Service.Stream` returns an open SSE response; `Watch[T]` decodes it into a receive-only channel. Context cancellation closes the request and stream.
+`Service.Call` sends an inventory-backed operation with positional path parameters, query values, custom headers, and a JSON body. `Client.Request` and `Client.Core` support direct requests outside the inventory. `Service.Stream` returns an open SSE response body that the caller must close; `Watch[T]` decodes it into a receive-only channel and closes the body when the context is canceled or the stream ends.
 
 The default base URL is `https://api.frontal.dev/v1`. Paths in the endpoint inventory omit `/v1`; URL joining accepts either form without duplicating the version prefix.
 
 ## Configuration and errors
 
-The client reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. API keys are sent only as Bearer authorization. Each HTTP attempt carries an `X-Request-ID`, `X-Frontal-Environment`, and SDK version header. Debug logs contain request metadata, not credentials or bodies.
+`frontal.New` reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. API keys are sent only as Bearer authorization. `FRONTAL_TIMEOUT` accepts a Go duration (such as `15s`) or an integer number of milliseconds. Each HTTP attempt carries an `X-Request-ID`, `X-Frontal-Environment`, and SDK version header. Debug logs contain request metadata, not credentials or bodies.
 
 Non-success responses become `*frontal.APIError` values with status, code, request ID, and retryability. Error category helpers classify authentication, rate-limit, validation, and server failures. Only safe GET and HEAD requests retry transient statuses or network timeouts, using exponential backoff and `Retry-After` where available.
 

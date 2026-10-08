@@ -1,5 +1,5 @@
-# Publishing to Go module proxy
+# Publishing a Go module release
 
-Tag the repository with `vMAJOR.MINOR.PATCH`. Keep the module import path stable, verify `go list -m` resolves the tagged version, and publish release notes. The Go proxy indexes public tags; no registry upload step is required.
+Push a `vMAJOR.MINOR.PATCH` tag to trigger `.github/workflows/publish.yml`. The workflow validates the tag and module path, checks API compatibility against the latest earlier release in the same major version, builds and tests the tagged source, checks the endpoint contract, and uses GoReleaser to publish a GitHub release. The Go module proxy indexes public tags automatically; no separate module upload is required.
 
-The repository currently has no registry publishing credentials or release action. Complete the implementation and release metadata first. Keep credentials in protected repository secrets and use the registry's recommended signing or trusted-publishing mechanism where available.
+For v1, the module path is `github.com/frontal-labs/sdk-go`. Starting with v2, the module path must include the major suffix, such as `github.com/frontal-labs/sdk-go/v2`; the release workflow enforces this. See [RELEASING](./RELEASING.md) for the release checklist and commands.
