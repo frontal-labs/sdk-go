@@ -37,7 +37,15 @@ jobs:
         run: |
           previous_tag="$(git tag --list 'v[0-9]*' --sort=-version:refname | awk -v current="$GITHUB_REF_NAME" '$0 == current { found=1; next } found { print; exit }')"
           if [[ -n "$previous_tag" ]]; then
-            bash scripts/check_apidiff.sh "$previous_tag"
+            current_major="${GITHUB_REF_NAME#v}"
+            current_major="${current_major%%.*}"
+            previous_major="${previous_tag#v}"
+            previous_major="${previous_major%%.*}"
+            if [[ "$previous_major" == "$current_major" ]]; then
+              bash scripts/check_apidiff.sh "$previous_tag"
+            else
+              echo "Previous release $previous_tag is a different major; skipping API compatibility comparison."
+            fi
           else
             echo "No earlier Go release tag exists; skipping the compatibility baseline comparison."
           fi
