@@ -1,0 +1,33 @@
+{
+  "files.insertFinalNewline": true,
+  "files.trimTrailingWhitespace": true,
+  "files.encoding": "utf8",
+  "editor.renderWhitespace": "boundary",
+  "editor.minimap.enabled": false,
+  "editor.formatOnPaste": false,
+  "files.exclude": {
+    "**/vendor": true,
+    "**/bin": true,
+    "**/coverage": true
+  },
+  "search.exclude": {
+    "**/.git": true,
+    "**/coverage": true,
+    "**/test-results": true
+  },
+  "[go]": {
+    "editor.defaultFormatter": "golang.go",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit"
+    }
+  },
+  "gopls": {
+    "formatting.gofumpt": true
+  },
+  "go.lintTool": "golangci-lint",
+  "go.lintOnSave": "workspace",
+  "go.testFlags": [
+    "-race"
+  ]
+}

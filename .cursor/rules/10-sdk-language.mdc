@@ -1,0 +1,11 @@
+---
+description: Go SDK code conventions and checks
+globs: **/*.go
+alwaysApply: false
+---
+
+# Go development rules
+
+Use context.Context for cancellation and deadlines; wrap errors with %w; use net/http/httptest for isolated transport tests. Keep service paths and wire shapes grounded in contracts/sdk-endpoints.json and the committed OpenAPI snapshots.
+
+When implementing behavior changes, add deterministic offline coverage using the repository's existing test tools. Update docs and runnable examples for public API changes. See `AGENTS.md` for project-specific rules and use the applicable skill under `skills/`.

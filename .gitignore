@@ -5,7 +5,6 @@
 
 # Operating systems and editors
 .DS_Store
-.vscode/
 *.swp
 *.swo
 

@@ -1,5 +1,17 @@
+# Cursor context exclusions
 .git/
 /bin/
 /vendor/
 /coverage/
 /test-results/
+
+# Local secrets and generated caches
+.env
+.env.*
+!.env.example
+!.env.*.example
+.gradle/
+.venv/
+venv/
+__pycache__/
+*.egg-info/

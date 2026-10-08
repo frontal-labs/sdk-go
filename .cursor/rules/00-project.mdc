@@ -1,0 +1,13 @@
+---
+description: Shared Frontal SDK repository constraints
+alwaysApply: true
+---
+
+# Project guidance
+
+- Read `AGENTS.md` for repository layout, conventions, and canonical commands. `CLAUDE.md` imports it for Claude Code compatibility.
+- Treat `contracts/sdk-endpoints.json` and committed OpenAPI snapshots as authoritative for endpoint paths and wire shapes. Do not invent public operations or fields.
+- Preserve established public API and compatibility unless the requested change explicitly requires otherwise.
+- Keep credentials, tokens, and customer data out of code, logs, fixtures, and examples.
+- Follow relevant repository skills in `skills/` when changing SDK behavior.
+- Inspect the existing diff before editing. Run only the checks relevant to the change and report exactly what was run.

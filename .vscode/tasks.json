@@ -1,0 +1,65 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Go: Build all packages",
+      "type": "process",
+      "command": "go",
+      "args": [
+        "build",
+        "./..."
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "Go: Test with race detector",
+      "type": "process",
+      "command": "go",
+      "args": [
+        "test",
+        "-race",
+        "./..."
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "Go: Lint",
+      "type": "process",
+      "command": "golangci-lint",
+      "args": [
+        "run",
+        "./..."
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    },
+    {
+      "label": "Go: Check endpoint contracts",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "scripts/check_contracts.py"
+      ],
+      "problemMatcher": [],
+      "presentation": {
+        "reveal": "always",
+        "panel": "shared",
+        "clear": false
+      }
+    }
+  ]
+}
