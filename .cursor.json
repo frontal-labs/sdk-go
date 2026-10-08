@@ -1,0 +1,4 @@
+{
+  "name": "Frontal Go SDK",
+  "description": "Go SDK workspace. Follow AGENTS.md, use the native toolchain, and check contracts/ before adding service operations."
+}

@@ -1,0 +1,5 @@
+title = "Frontal SDK secret scanning"
+
+[allowlist]
+description = "Allow only documented non-secret example values"
+paths = [".env.example"]

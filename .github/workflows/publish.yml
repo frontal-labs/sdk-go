@@ -1,0 +1,17 @@
+name: Go module release readiness
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  readiness:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: go.mod
+      - name: Check module metadata
+        run: go list ./...
+      - name: Explain release route
+        run: echo "Release Go modules with a protected vMAJOR.MINOR.PATCH Git tag."

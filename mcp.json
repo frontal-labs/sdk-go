@@ -1,0 +1,200 @@
+{
+  "name": "Frontal Go SDK",
+  "language": "Go",
+  "version": "0.1.0",
+  "status": "scaffold",
+  "documents": [
+    {
+      "path": ".github/BRANCH_PROTECTION.md",
+      "title": "BRANCH PROTECTION"
+    },
+    {
+      "path": ".github/PULL_REQUEST_TEMPLATE.md",
+      "title": "PULL REQUEST TEMPLATE"
+    },
+    {
+      "path": "AGENTS.md",
+      "title": "AGENTS"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "title": "CHANGELOG"
+    },
+    {
+      "path": "CODE_OF_CONDUCT.md",
+      "title": "CODE OF CONDUCT"
+    },
+    {
+      "path": "CONTRIBUTING.md",
+      "title": "CONTRIBUTING"
+    },
+    {
+      "path": "LICENSE.md",
+      "title": "LICENSE"
+    },
+    {
+      "path": "PLAN.md",
+      "title": "PLAN"
+    },
+    {
+      "path": "README.md",
+      "title": "README"
+    },
+    {
+      "path": "RELEASE.md",
+      "title": "RELEASE"
+    },
+    {
+      "path": "SECURITY.md",
+      "title": "SECURITY"
+    },
+    {
+      "path": "contracts/README.md",
+      "title": "README"
+    },
+    {
+      "path": "contracts/reports/migration-matrix.md",
+      "title": "migration-matrix"
+    },
+    {
+      "path": "docs/ARCHITECTURE.md",
+      "title": "ARCHITECTURE"
+    },
+    {
+      "path": "docs/DEVELOPERS.md",
+      "title": "DEVELOPERS"
+    },
+    {
+      "path": "docs/ENTERPRISE_READINESS.md",
+      "title": "ENTERPRISE READINESS"
+    },
+    {
+      "path": "docs/ONBOARDING.md",
+      "title": "ONBOARDING"
+    },
+    {
+      "path": "docs/OVERVIEW.md",
+      "title": "OVERVIEW"
+    },
+    {
+      "path": "docs/PUBLISHING.md",
+      "title": "PUBLISHING"
+    },
+    {
+      "path": "docs/README.md",
+      "title": "README"
+    },
+    {
+      "path": "docs/RELEASING.md",
+      "title": "RELEASING"
+    },
+    {
+      "path": "docs/ROADMAP.md",
+      "title": "ROADMAP"
+    },
+    {
+      "path": "docs/SECURITY.md",
+      "title": "SECURITY"
+    },
+    {
+      "path": "docs/TESTING.md",
+      "title": "TESTING"
+    },
+    {
+      "path": "examples/README.md",
+      "title": "README"
+    },
+    {
+      "path": "examples/SDKS_GUIDE.md",
+      "title": "SDKS GUIDE"
+    },
+    {
+      "path": "internal/core/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/agents/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/ai/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/audit/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/auth/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/billing/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/blob/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/connectors/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/data/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/governance/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/lineage/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/observability/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/ontology/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/pipelines/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/sandbox/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/schedules/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/sdk/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/testutil/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/webhooks/README.md",
+      "title": "README"
+    },
+    {
+      "path": "pkg/workflows/README.md",
+      "title": "README"
+    },
+    {
+      "path": "scripts/README.md",
+      "title": "README"
+    },
+    {
+      "path": "skills/frontal-sdk/SKILL.md",
+      "title": "SKILL"
+    }
+  ]
+}

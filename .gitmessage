@@ -1,0 +1,4 @@
+type(scope): short summary
+
+# Types: feat, fix, docs, refactor, test, build, ci, chore
+# Keep the subject imperative and under 72 characters.

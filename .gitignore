@@ -1,0 +1,17 @@
+# Local secrets
+.env
+.env.*.local
+!.env.example
+
+# Operating systems and editors
+.DS_Store
+.vscode/
+*.swp
+*.swo
+
+# Go build products and vendored dependencies
+/bin/
+/vendor/
+/coverage/
+/test-results/
+*.out
