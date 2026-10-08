@@ -7,7 +7,7 @@ In **Settings → Rules → Rulesets**, create an active branch ruleset targetin
 - Require a pull request before merging, with at least one approval.
 - Require approval of the most recent push and dismiss stale approvals.
 - Require all review conversations to be resolved.
-- Require status checks `CI` and `CodeQL` (and `Dependency Review` for pull requests).
+- Require these status checks: `CI (ubuntu-latest, Go 1.22.x)`, `CI (ubuntu-latest, Go 1.23.x)`, `CI (macos-latest, Go 1.22.x)`, `CI (macos-latest, Go 1.23.x)`, `CI (windows-latest, Go 1.22.x)`, `CI (windows-latest, Go 1.23.x)`, `Conventional Commits`, `analyze` (CodeQL), and `Dependency Review`.
 - Require linear history; block force pushes and branch deletion.
 - Do not allow bypass except for a documented break-glass administrator.
 
