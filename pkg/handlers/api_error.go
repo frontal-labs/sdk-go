@@ -13,6 +13,9 @@ type APIError struct {
 	Type       string          `json:"type,omitempty"`
 	Message    string          `json:"message,omitempty"`
 	RequestID  string          `json:"request_id,omitempty"`
+	Retryable  bool            `json:"retryable"`
+	Docs       string          `json:"docs,omitempty"`
+	Fields     json.RawMessage `json:"fields,omitempty"`
 	Details    json.RawMessage `json:"details,omitempty"`
 }
 

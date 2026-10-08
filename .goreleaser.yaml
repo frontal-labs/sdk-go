@@ -1,0 +1,10 @@
+version: 2
+project_name: sdk-go
+builds:
+  - skip: true
+release:
+  github:
+    owner: frontal-labs
+    name: sdk-go
+changelog:
+  use: github-native

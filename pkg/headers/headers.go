@@ -3,6 +3,7 @@ package headers
 
 import "net/http"
 
+// HTTP header names and content types used by the Frontal SDK.
 const (
 	Authorization = "Authorization"
 	Accept        = "Accept"

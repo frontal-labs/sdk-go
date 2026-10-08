@@ -1,9 +1,11 @@
 # Go SDK roadmap
 
-- [x] Add the Go-native repository structure and project configuration.
-- [x] Add the shared API contract snapshots and Go coverage placeholder.
-- [x] Implement the core client, authentication, request handling, and shared error model in Go.
-- [x] Generate endpoint descriptors from the shared inventory and provide generic request and streaming APIs.
-- [ ] Add endpoint-specific service methods and typed response models where contracts define them.
-- [ ] Add contract conformance, Go tests, and executable examples.
-- [ ] Configure protected Go module proxy releases.
+- [x] Create one Go module with repository health files and Go 1.22/1.23 CI.
+- [x] Wire gofumpt, goimports, golangci-lint, race tests, executable examples, documentation, and contract gates.
+- [x] Implement context-first HTTP transport, Bearer auth, request IDs, environment headers, retries, timeouts, and typed API errors.
+- [x] Expose all committed service groups from one `frontal.Client` and dispatch every catalog operation through its scoped service.
+- [x] Cover retries, error mapping, pagination, configuration, and SSE behavior with mock HTTP servers.
+- [x] Keep README Go examples executable under `go test` and verify the committed OpenAPI snapshots and generated catalog.
+- [x] Add SDK guidance files and tagged GoReleaser release automation with API compatibility checks.
+- [ ] Publish the first `v1.0.0` tag after release review.
+- [ ] Add endpoint-specific request and response types where the OpenAPI contract declares stable schemas.

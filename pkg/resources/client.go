@@ -2,14 +2,19 @@
 package resources
 
 import (
+	"bytes"
 	"context"
+	"crypto/rand"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"net/http"
 	"net/url"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -24,28 +29,39 @@ const (
 	DefaultBaseURL = utils.DefaultBaseURL
 	// DefaultTimeout is applied when the caller does not provide an HTTP client or timeout.
 	DefaultTimeout    = 30 * time.Second
-	defaultUserAgent  = "frontal-go/0.1.0"
+	defaultUserAgent  = "frontal-go/1.0.0"
 	defaultMaxRetries = 2
-	maxRetriesLimit   = 8
+	maxRetriesLimit   = 10
+	defaultRetryDelay = 100 * time.Millisecond
+	maxRetryDelay     = 30 * time.Second
 )
 
+// ErrForeignRequest is returned when a request targets another API origin.
 var ErrForeignRequest = errors.New("frontal: request URL must use the configured API origin")
 
 // Client sends authenticated requests to the Frontal API. It is safe for concurrent use.
 type Client struct {
-	baseURL    *url.URL
-	apiKey     authentication.APIKey
-	transport  *httpTransport
-	userAgent  string
-	maxRetries int
+	baseURL     *url.URL
+	apiKey      authentication.APIKey
+	transport   *httpTransport
+	userAgent   string
+	maxRetries  int
+	retryDelay  time.Duration
+	environment string
+	debug       bool
+	headers     http.Header
 }
 
 type clientConfig struct {
-	baseURL    string
-	httpClient *http.Client
-	timeout    time.Duration
-	userAgent  string
-	maxRetries int
+	baseURL     string
+	httpClient  *http.Client
+	timeout     time.Duration
+	userAgent   string
+	maxRetries  int
+	retryDelay  time.Duration
+	environment string
+	debug       bool
+	headers     http.Header
 }
 
 // Option configures a Client.
@@ -58,10 +74,13 @@ func NewClient(apiKey string, options ...Option) (*Client, error) {
 		return nil, fmt.Errorf("frontal: configure authentication: %w", err)
 	}
 	config := clientConfig{
-		baseURL:    DefaultBaseURL,
-		timeout:    DefaultTimeout,
-		userAgent:  defaultUserAgent,
-		maxRetries: defaultMaxRetries,
+		baseURL:     DefaultBaseURL,
+		timeout:     DefaultTimeout,
+		userAgent:   defaultUserAgent,
+		maxRetries:  defaultMaxRetries,
+		retryDelay:  defaultRetryDelay,
+		environment: "development",
+		headers:     make(http.Header),
 	}
 	for _, option := range options {
 		if option == nil {
@@ -76,11 +95,15 @@ func NewClient(apiKey string, options ...Option) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		baseURL:    baseURL,
-		apiKey:     key,
-		transport:  newHTTPTransport(config.httpClient, config.timeout),
-		userAgent:  config.userAgent,
-		maxRetries: config.maxRetries,
+		baseURL:     baseURL,
+		apiKey:      key,
+		transport:   newHTTPTransport(config.httpClient, config.timeout),
+		userAgent:   config.userAgent,
+		maxRetries:  config.maxRetries,
+		retryDelay:  config.retryDelay,
+		environment: config.environment,
+		debug:       config.debug,
+		headers:     config.headers.Clone(),
 	}, nil
 }
 
@@ -88,7 +111,7 @@ func NewClient(apiKey string, options ...Option) (*Client, error) {
 // FRONTAL_TIMEOUT accepts a Go duration or an integer number of milliseconds.
 func NewClientFromEnv(options ...Option) (*Client, error) {
 	apiKey := os.Getenv("FRONTAL_API_KEY")
-	envOptions := make([]Option, 0, 2+len(options))
+	envOptions := make([]Option, 0, 4+len(options))
 	if baseURL := strings.TrimSpace(os.Getenv("FRONTAL_API_URL")); baseURL != "" {
 		envOptions = append(envOptions, WithBaseURL(baseURL))
 	}
@@ -99,8 +122,67 @@ func NewClientFromEnv(options ...Option) (*Client, error) {
 		}
 		envOptions = append(envOptions, WithTimeout(duration))
 	}
+	if environment := strings.TrimSpace(os.Getenv("FRONTAL_ENV")); environment != "" {
+		envOptions = append(envOptions, WithEnvironment(environment))
+	}
+	if debug := strings.TrimSpace(os.Getenv("FRONTAL_DEBUG")); debug != "" {
+		parsed, err := strconv.ParseBool(debug)
+		if err != nil {
+			return nil, fmt.Errorf("frontal: invalid FRONTAL_DEBUG value %q: %w", debug, err)
+		}
+		envOptions = append(envOptions, WithDebug(parsed))
+	}
 	envOptions = append(envOptions, options...)
 	return NewClient(apiKey, envOptions...)
+}
+
+// WithEnvironment sets the runtime environment sent with each request.
+func WithEnvironment(environment string) Option {
+	return func(config *clientConfig) error {
+		environment = strings.TrimSpace(environment)
+		if environment == "" || strings.ContainsAny(environment, "\r\n") {
+			return errors.New("frontal: environment must be non-empty and contain no newlines")
+		}
+		config.environment = environment
+		return nil
+	}
+}
+
+// WithDebug enables request metadata logging. Bodies and credentials are never logged.
+func WithDebug(enabled bool) Option {
+	return func(config *clientConfig) error {
+		config.debug = enabled
+		return nil
+	}
+}
+
+// WithHeaders adds headers to every request. Authorization and Host are controlled by the client.
+func WithHeaders(custom http.Header) Option {
+	return func(config *clientConfig) error {
+		for name, values := range custom {
+			if strings.EqualFold(name, headers.Authorization) || strings.EqualFold(name, "Host") {
+				return fmt.Errorf("frontal: header %q is managed by the client", name)
+			}
+			for _, value := range values {
+				if strings.ContainsAny(value, "\r\n") {
+					return fmt.Errorf("frontal: header %q contains a newline", name)
+				}
+				config.headers.Add(name, value)
+			}
+		}
+		return nil
+	}
+}
+
+// WithRetryDelay sets the base delay used by exponential retry backoff.
+func WithRetryDelay(delay time.Duration) Option {
+	return func(config *clientConfig) error {
+		if delay < 0 || delay > maxRetryDelay {
+			return fmt.Errorf("frontal: retry delay must be between 0 and %s", maxRetryDelay)
+		}
+		config.retryDelay = delay
+		return nil
+	}
 }
 
 // NewFromEnvironment is an alias for NewClientFromEnv.
@@ -183,6 +265,7 @@ func (client *Client) NewRequest(ctx context.Context, method, endpoint string, b
 		return nil, err
 	}
 	request.Header = headers.ApplyDefaults(request.Header, client.userAgent)
+	client.applyHeaders(request)
 	return request, nil
 }
 
@@ -199,16 +282,29 @@ func (client *Client) Do(request *http.Request) (*http.Response, error) {
 	}
 	request = request.Clone(request.Context())
 	request.Header = headers.ApplyDefaults(request.Header.Clone(), client.userAgent)
+	client.applyHeaders(request)
+	if err := ensureRequestID(request); err != nil {
+		return nil, err
+	}
 	request.Host = ""
 	if err := client.apiKey.Apply(request); err != nil {
 		return nil, err
 	}
 	response, err := client.transport.Do(request)
 	if err != nil {
+		if client.debug {
+			log.Printf("frontal: request failed method=%s path=%q", request.Method, request.URL.EscapedPath())
+		}
 		return nil, fmt.Errorf("frontal: %s request failed: %w", request.Method, err)
 	}
 	if response == nil {
 		return nil, errors.New("frontal: HTTP transport returned a nil response")
+	}
+	if response.Request == nil {
+		response.Request = request
+	}
+	if client.debug {
+		log.Printf("frontal: response method=%s path=%q status=%d request_id=%q", request.Method, request.URL.EscapedPath(), response.StatusCode, response.Header.Get(headers.RequestID))
 	}
 	return response, nil
 }
@@ -229,7 +325,85 @@ func (client *Client) Call(ctx context.Context, request Request, out any) error 
 	if request.Endpoint.Path == "" || method == "" {
 		return errors.New("frontal: request endpoint method and path are required")
 	}
-	return client.request(ctx, method, request.Endpoint.Path, request.PathParams, request.Query, request.Headers, request.Body, out)
+	switch method {
+	case "GETRAW":
+		writer, ok := out.(io.Writer)
+		if !ok {
+			return errors.New("frontal: GETRAW requires an io.Writer response target")
+		}
+		return client.rawRequest(ctx, http.MethodGet, request, nil, writer)
+	case "POSTRAW", "POSTFORMDATA":
+		body, err := rawBody(request.Body)
+		if err != nil {
+			return err
+		}
+		return client.rawRequest(ctx, http.MethodPost, request, body, out)
+	case http.MethodGet, http.MethodHead, http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete:
+		return client.request(ctx, method, request.Endpoint.Path, request.PathParams, request.Query, request.Headers, request.Body, out)
+	default:
+		return fmt.Errorf("frontal: unsupported endpoint method %q", method)
+	}
+}
+
+func rawBody(body any) (io.Reader, error) {
+	switch value := body.(type) {
+	case nil:
+		return nil, nil
+	case io.Reader:
+		return value, nil
+	case []byte:
+		return bytes.NewReader(value), nil
+	case string:
+		return strings.NewReader(value), nil
+	default:
+		return nil, fmt.Errorf("frontal: raw request body must be an io.Reader, []byte, or string, got %T", body)
+	}
+}
+
+func (client *Client) rawRequest(ctx context.Context, method string, request Request, body io.Reader, out any) error {
+	if client == nil || client.baseURL == nil || client.transport == nil {
+		return errors.New("frontal: client is not configured")
+	}
+	endpoint, err := utils.ExpandPath(request.Endpoint.Path, request.PathParams)
+	if err != nil {
+		return err
+	}
+	target, err := utils.ResolveEndpoint(client.baseURL, endpoint)
+	if err != nil {
+		return err
+	}
+	mergeQuery(target, request.Query)
+	httpRequest, err := handlers.NewRequest(ctx, method, target.String(), body)
+	if err != nil {
+		return err
+	}
+	applyCustomHeaders(httpRequest, request.Headers)
+	httpRequest.Header = headers.ApplyDefaults(httpRequest.Header, client.userAgent)
+	client.applyHeaders(httpRequest)
+	for attempt := 0; ; attempt++ {
+		current := httpRequest
+		if attempt > 0 {
+			current = httpRequest.Clone(ctx)
+		}
+		response, err := client.Do(current)
+		if err != nil {
+			if attempt >= client.maxRetries || !isRetryableMethod(method) || !isRetryableNetworkError(err) {
+				return err
+			}
+			if err := waitForRetry(ctx, client.calculateRetryDelay(attempt, nil)); err != nil {
+				return err
+			}
+			continue
+		}
+		if attempt >= client.maxRetries || !isRetryableMethod(method) || !isRetryableStatus(response.StatusCode) {
+			return handlers.HandleResponse(response, out)
+		}
+		delay := client.calculateRetryDelay(attempt, response)
+		drainAndClose(response.Body)
+		if err := waitForRetry(ctx, delay); err != nil {
+			return err
+		}
+	}
 }
 
 func (client *Client) request(ctx context.Context, method, endpoint string, pathParams []string, query url.Values, customHeaders http.Header, body, out any) error {
@@ -253,6 +427,7 @@ func (client *Client) request(ctx context.Context, method, endpoint string, path
 		}
 		applyCustomHeaders(request, customHeaders)
 		request.Header = headers.ApplyDefaults(request.Header, client.userAgent)
+		client.applyHeaders(request)
 		return request, nil
 	}
 	for attempt := 0; ; attempt++ {
@@ -265,7 +440,7 @@ func (client *Client) request(ctx context.Context, method, endpoint string, path
 			if attempt >= client.maxRetries || !isRetryableMethod(method) || !isRetryableNetworkError(err) {
 				return err
 			}
-			if err := waitForRetry(ctx, retryDelay(nil, attempt)); err != nil {
+			if err := waitForRetry(ctx, client.calculateRetryDelay(attempt, nil)); err != nil {
 				return err
 			}
 			continue
@@ -273,7 +448,7 @@ func (client *Client) request(ctx context.Context, method, endpoint string, path
 		if attempt >= client.maxRetries || !isRetryableMethod(method) || !isRetryableStatus(response.StatusCode) {
 			return handlers.HandleResponse(response, out)
 		}
-		delay := retryDelay(response, attempt)
+		delay := client.calculateRetryDelay(attempt, response)
 		drainAndClose(response.Body)
 		if err := waitForRetry(ctx, delay); err != nil {
 			return err
@@ -309,12 +484,22 @@ func (client *Client) Stream(ctx context.Context, request Request) (*http.Respon
 	}
 	applyCustomHeaders(httpRequest, request.Headers)
 	httpRequest.Header = headers.ApplyDefaults(httpRequest.Header, client.userAgent)
+	client.applyHeaders(httpRequest)
+	if err := ensureRequestID(httpRequest); err != nil {
+		return nil, err
+	}
 	if request.Headers.Get(headers.Accept) == "" {
 		httpRequest.Header.Set(headers.Accept, "text/event-stream")
 	}
+	if err := client.apiKey.Apply(httpRequest); err != nil {
+		return nil, err
+	}
 	response, err := client.transport.DoStream(httpRequest)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("frontal: stream request failed: %w", err)
+	}
+	if client.debug {
+		log.Printf("frontal: stream response method=%s path=%q status=%d request_id=%q", httpRequest.Method, httpRequest.URL.EscapedPath(), response.StatusCode, response.Header.Get(headers.RequestID))
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
 		return nil, handlers.HandleResponse(response, nil)
@@ -328,7 +513,7 @@ func StreamEvents[T any](ctx context.Context, client *Client, request Request, h
 	if err != nil {
 		return err
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	return handlers.DecodeEventStream(ctx, response.Body, handle)
 }
 
@@ -404,7 +589,7 @@ func isRetryableMethod(method string) bool {
 
 func isRetryableStatus(status int) bool {
 	switch status {
-	case http.StatusTooManyRequests, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout, http.StatusInternalServerError:
+	case http.StatusRequestTimeout, http.StatusTooEarly, http.StatusTooManyRequests, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout, http.StatusInternalServerError:
 		return true
 	default:
 		return false
@@ -415,11 +600,15 @@ func isRetryableNetworkError(err error) bool {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return false
 	}
+	var urlError *url.Error
+	if errors.As(err, &urlError) {
+		return true
+	}
 	var networkError net.Error
-	return errors.As(err, &networkError) && (networkError.Timeout() || networkError.Temporary())
+	return errors.As(err, &networkError) && networkError.Timeout()
 }
 
-func retryDelay(response *http.Response, attempt int) time.Duration {
+func (client *Client) calculateRetryDelay(attempt int, response *http.Response) time.Duration {
 	if response != nil {
 		if delay, ok := utils.RetryAfter(response.Header.Get("Retry-After"), time.Now()); ok {
 			if delay > 30*time.Second {
@@ -428,11 +617,43 @@ func retryDelay(response *http.Response, attempt int) time.Duration {
 			return delay
 		}
 	}
-	delay := 100 * time.Millisecond * time.Duration(1<<attempt)
+	delay := client.retryDelay * time.Duration(1<<attempt)
 	if delay > 2*time.Second {
 		return 2 * time.Second
 	}
 	return delay
+}
+
+func (client *Client) applyHeaders(request *http.Request) {
+	if request == nil {
+		return
+	}
+	for name, values := range client.headers {
+		request.Header.Del(name)
+		for _, value := range values {
+			request.Header.Add(name, value)
+		}
+	}
+	request.Header.Set("X-Frontal-Environment", client.environment)
+	request.Header.Set("X-Frontal-Core", "go@1.0.0")
+}
+
+func ensureRequestID(request *http.Request) error {
+	if request == nil {
+		return errors.New("frontal: request is nil")
+	}
+	if request.Header.Get(headers.RequestID) != "" {
+		return nil
+	}
+	var value [16]byte
+	if _, err := rand.Read(value[:]); err != nil {
+		return fmt.Errorf("frontal: generate request ID: %w", err)
+	}
+	value[6] = value[6]&0x0f | 0x40
+	value[8] = value[8]&0x3f | 0x80
+	encoded := hex.EncodeToString(value[:])
+	request.Header.Set(headers.RequestID, encoded[:8]+"-"+encoded[8:12]+"-"+encoded[12:16]+"-"+encoded[16:20]+"-"+encoded[20:])
+	return nil
 }
 
 func waitForRetry(ctx context.Context, delay time.Duration) error {

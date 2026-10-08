@@ -2,84 +2,68 @@
 
 ![Frontal Banner](./banner.png)
 
-**Frontal Go SDK library.**
+One context-first Go client for Frontal AI, agents, workflows, and every other service in the committed endpoint inventory.
 
-Frontal's Go SDK is a single Go module. The public client and contract backed endpoint catalog live in `pkg/resources`; authentication, HTTP handling, headers, and URL helpers are separated into focused support packages.
+## Quickstart
+
+With `FRONTAL_API_KEY` set and `ctx` in scope, call a service operation:
+
+```go
+client, err := frontal.New()
+if err != nil { log.Fatal(err) }
+var health map[string]any
+err = client.Agents.Call(ctx, resources.Request{Endpoint: resources.Endpoint{Service: "agents", Method: "GET", Path: "/agents/health"}}, &health)
+if err != nil { log.Fatal(err) }
+```
+
+The [`ExampleNew`](./example_test.go) test runs the same client call against an `httptest.Server`, so the quickstart behavior stays executable without a Frontal backend.
+
+## Client and services
+
+`frontal.New(opts ...Option)` reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. Go does not load `.env` files automatically. `FRONTAL_ENV` defaults to `development`. Options include `WithAPIKey`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`, and `WithMaxRetries`.
+
+The returned client exposes `AI`, `Agents`, `Workflows`, `Audit`, `Auth`, `Billing`, `Blob`, `Connectors`, `Data`, `Governance`, `Lineage`, `Observability`, `Ontology`, `Pipelines`, `Sandbox`, `Schedules`, and `Webhooks`. Each service lists its contract operations with `Endpoints` and sends an operation with `Call(ctx, resources.Request, out)`. Use `client.Core` or `client.Request` for direct HTTP access.
+
+```go
+endpoint, _ := client.AI.Endpoint(http.MethodPost, "/ai/chat/completions")
+var result map[string]any
+err = client.AI.Call(ctx, resources.Request{Endpoint: endpoint, Body: map[string]any{"model": "model-id", "messages": messages}}, &result)
+```
+
+[`ExampleService_Call`](./example_test.go) runs this AI operation against an `httptest.Server`.
+
+`FetchPage[T]` decodes collection and cursor metadata. `Watch[T]` streams JSON SSE events to a receive-only channel; cancel its context to close the request. `PollUntil[T]` polls with a caller-supplied fetch and completion check.
+
+API failures are `*frontal.APIError` values discoverable through `errors.As`, with status, code, request ID, and retryability. Use `IsAuthError`, `IsRateLimitError`, `IsValidationError`, `IsServerError`, and `IsNetworkError` to classify failures.
 
 ## Package layout
 
 | Path | Purpose |
 | --- | --- |
-| `pkg/resources/` | Public client, request/endpoint types, generated route catalog, and transport |
+| `client.go`, `service.go` | Unified client, service namespaces, pagination, polling, and streams |
+| `pkg/resources/` | Shared HTTP client and generated endpoint catalog |
 | `pkg/authentication/` | API key validation and Bearer authentication |
-| `pkg/handlers/` | JSON request/response handling, API errors, and SSE decoding |
+| `pkg/handlers/` | HTTP request/response handling, API errors, and SSE decoding |
 | `pkg/headers/` | HTTP header names and defaults |
-| `pkg/utils/` | URL, path parameter, timeout, and retry helpers |
-| `tests/` | Cross-package integration tests; unit tests remain beside their code |
-
-## Quickstart
-
-Set `FRONTAL_API_KEY`, then call an operation from the generated endpoint catalog:
-
-```go
-package main
-
-import (
-	"context"
-	"fmt"
-	"log"
-
-	"github.com/frontal-labs/sdk-go/pkg/resources"
-)
-
-func main() {
-	client, err := resources.NewClientFromEnv()
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	endpoint, ok := resources.FindEndpoint("agents", "GET", "/agents/health")
-	if !ok {
-		log.Fatal("agents health endpoint is missing from the SDK catalog")
-	}
-
-	var health map[string]any
-	err = client.Call(context.Background(), resources.Request{Endpoint: endpoint}, &health)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("health: %v\n", health)
-}
-```
-
-`Client.Call` supports contract backed operations with path parameters, query values, custom headers, and JSON bodies. `Client.Request` handles paths outside the catalog. Use `Client.NewRequest` and `Client.Do` for raw bodies; `Client.Stream` and `resources.StreamEvents[T]` support Server-Sent Events.
-
-The client uses `https://api.frontal.dev/v1` by default, sends API keys as Bearer tokens, bounds JSON responses to 32 MiB, and retries transient failures only for GET and HEAD requests.
-
-## Configuration
-
-`resources.NewClientFromEnv` reads `FRONTAL_API_KEY`, optional `FRONTAL_API_URL`, and optional `FRONTAL_TIMEOUT`. Timeout values accept Go duration syntax or integer milliseconds. Go does not load `.env` files automatically; [`.env.example`](./.env.example) is a reference only.
-
-Use `resources.NewClient(apiKey, options...)` to configure the client directly. The module path is `github.com/frontal-labs/sdk-go`.
-
-## Templates
-
-The `templates/` package renders Go starter projects for CLI applications, HTTP services, background workers, and SSE consumers. See [`templates/README.md`](./templates/README.md) for details.
+| `pkg/utils/` | URL, timeout, and retry helpers |
+| `contracts/` | Committed OpenAPI snapshots and route inventory |
 
 ## Development
 
-Requirements: Go 1.22 or later.
+The module supports Go 1.22 and 1.23. CI uses gofumpt, goimports, golangci-lint (govet, staticcheck, errcheck, revive), and runs tests with the race detector.
 
 ```bash
-gofmt -w ./pkg
+gofumpt -w .
+goimports -w .
 go generate ./pkg/resources
 go build ./...
-go vet ./...
+golangci-lint run ./...
 go test -race ./...
+go test -run '^Example' ./...
 python3 scripts/check_contracts.py
 ```
 
-See [`CONTRIBUTING.md`](./CONTRIBUTING.md), [`docs/ONBOARDING.md`](./docs/ONBOARDING.md), and [`AGENTS.md`](./AGENTS.md).
+See [`CONTRIBUTING.md`](./CONTRIBUTING.md), [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md), and [`docs/RELEASING.md`](./docs/RELEASING.md).
 
 ## License
 

@@ -3,24 +3,44 @@ on:
   pull_request:
   push:
     branches: [main]
+    tags: ["v*.*.*"]
 permissions:
   contents: read
 jobs:
   ci:
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        go-version: ["1.22.x", "1.23.x"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
         with:
-          go-version-file: go.mod
+          go-version: ${{ matrix.go-version }}
           cache: true
-      - name: Check formatting
-        run: test -z "$(gofmt -l .)"
+      - name: Install formatters
+        run: go install mvdan.cc/gofumpt@v0.7.0
+      - name: Install goimports
+        run: go install golang.org/x/tools/cmd/goimports@v0.28.0
+      - name: Check gofumpt formatting
+        run: test -z "$(gofumpt -l $(rg --files -g '*.go'))"
+      - name: Check goimports formatting
+        run: test -z "$(goimports -l $(rg --files -g '*.go'))"
       - name: Build
         run: go build ./...
-      - name: Vet
-        run: go vet ./...
-      - name: Test
+      - name: Lint
+        uses: golangci/golangci-lint-action@v9
+        with:
+          version: v2.13.2
+          args: ./...
+      - name: Test with race detector
         run: go test -race ./...
-      - name: Check contract files
+      - name: Run executable examples
+        run: go test -run '^Example' ./...
+      - name: Check package documentation
+        run: |
+          go doc github.com/frontal-labs/sdk-go >/dev/null
+          go doc github.com/frontal-labs/sdk-go/pkg/resources >/dev/null
+      - name: Check API contracts
         run: python3 scripts/check_contracts.py

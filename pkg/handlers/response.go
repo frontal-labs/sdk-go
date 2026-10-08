@@ -12,8 +12,10 @@ import (
 	"github.com/frontal-labs/sdk-go/pkg/headers"
 )
 
-const maxErrorBodyBytes = 1 << 20
-const maxFallbackMessageBytes = 4096
+const (
+	maxErrorBodyBytes       = 1 << 20
+	maxFallbackMessageBytes = 4096
+)
 
 // MaxJSONResponseBytes bounds the amount of JSON response data decoded into memory.
 const MaxJSONResponseBytes = 32 << 20
@@ -27,7 +29,7 @@ func HandleResponse(response *http.Response, out any) error {
 	if response.Body == nil {
 		return errors.New("frontal: response body is nil")
 	}
-	defer response.Body.Close()
+	defer func() { _ = response.Body.Close() }()
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices && response.StatusCode != http.StatusNotModified {
 		return decodeAPIError(response)
 	}
@@ -78,6 +80,7 @@ func decodeAPIError(response *http.Response) error {
 	apiError := &APIError{
 		StatusCode: response.StatusCode,
 		RequestID:  response.Header.Get(headers.RequestID),
+		Retryable:  retryableStatus(response.StatusCode),
 	}
 	if !decodeErrorPayload(body, apiError) && len(body) > 0 {
 		message := strings.TrimSpace(string(bytes.TrimSpace(body)))
@@ -86,6 +89,13 @@ func decodeAPIError(response *http.Response) error {
 		}
 		apiError.Message = message
 	}
+	if apiError.RequestID == "" {
+		apiError.RequestID = requestIDFromPayload(body)
+	}
+	if apiError.RequestID == "" && response.Request != nil {
+		apiError.RequestID = response.Request.Header.Get(headers.RequestID)
+	}
+	apiError.Retryable = retryableStatus(response.StatusCode)
 	if apiError.Message == "" && apiError.Code == "" {
 		apiError.Message = http.StatusText(response.StatusCode)
 	}
@@ -93,6 +103,39 @@ func decodeAPIError(response *http.Response) error {
 		apiError.Message = "API error response exceeded the 1 MiB limit"
 	}
 	return apiError
+}
+
+func requestIDFromPayload(body []byte) string {
+	var envelope struct {
+		Error     json.RawMessage `json:"error"`
+		RequestID string          `json:"requestId"`
+	}
+	if err := json.Unmarshal(body, &envelope); err != nil {
+		return ""
+	}
+	if len(envelope.Error) > 0 && !bytes.Equal(envelope.Error, []byte("null")) && envelope.Error[0] != '"' {
+		var nested struct {
+			Snake string `json:"request_id"`
+			Camel string `json:"requestId"`
+		}
+		if err := json.Unmarshal(envelope.Error, &nested); err == nil {
+			if nested.Snake != "" {
+				return nested.Snake
+			}
+			return nested.Camel
+		}
+	}
+	return envelope.RequestID
+}
+
+func retryableStatus(status int) bool {
+	switch status {
+	case http.StatusRequestTimeout, http.StatusTooEarly, http.StatusTooManyRequests,
+		http.StatusInternalServerError, http.StatusBadGateway, http.StatusServiceUnavailable, http.StatusGatewayTimeout:
+		return true
+	default:
+		return false
+	}
 }
 
 func decodeErrorPayload(body []byte, target *APIError) bool {

@@ -12,7 +12,6 @@ import (
 
 const maxEventLineBytes = 1 << 20
 
-// DecodeEventStream reads Server-Sent Events whose data fields contain JSON values.
 // Event is a decoded Server-Sent Event.
 type Event[T any] struct {
 	ID   string
@@ -20,6 +19,7 @@ type Event[T any] struct {
 	Data T
 }
 
+// DecodeEventStream reads Server-Sent Events whose data fields contain JSON values.
 func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func(Event[T]) error) error {
 	if ctx == nil {
 		return errors.New("frontal: event stream context is required")

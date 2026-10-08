@@ -2,11 +2,15 @@ version: "2"
 run:
   timeout: 5m
 linters:
-  default: standard
+  default: none
   enable:
-    - gosec
-    - misspell
+    - govet
+    - staticcheck
+    - errcheck
+    - revive
+  exclusions:
+    generated: strict
 formatters:
   enable:
-    - gofmt
+    - gofumpt
     - goimports

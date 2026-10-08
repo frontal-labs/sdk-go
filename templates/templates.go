@@ -60,7 +60,7 @@ func Render(name, module, destination, sdkPath string) error {
 	if err != nil {
 		return fmt.Errorf("create staging directory: %w", err)
 	}
-	defer os.RemoveAll(staging)
+	defer func() { _ = os.RemoveAll(staging) }()
 
 	data := templateData{Module: module, SDKReplace: filepath.ToSlash(sdkPath)}
 	for _, filename := range []string{"go.mod.tmpl", "main.go.tmpl", "README.md.tmpl"} {

@@ -11,8 +11,10 @@ import (
 	"time"
 )
 
+// DefaultBaseURL is the Frontal API base URL used when no override is set.
 const DefaultBaseURL = "https://api.frontal.dev/v1"
 
+// ErrInvalidBaseURL is returned when a base URL is not an absolute HTTP(S) URL.
 var ErrInvalidBaseURL = errors.New("frontal: base URL must be an absolute HTTP or HTTPS URL without credentials, query, or fragment")
 
 // ParseBaseURL validates a base URL and removes trailing slashes from its path.

@@ -1,8 +1,8 @@
 {
   "name": "Frontal Go SDK",
   "language": "Go",
-  "version": "0.1.0",
-  "status": "foundation",
+  "version": "1.0.0",
+  "status": "stable",
   "documents": [
     {
       "path": ".github/BRANCH_PROTECTION.md",
@@ -45,8 +45,8 @@
       "title": "SECURITY"
     },
     {
-      "path": "cmd/README.md",
-      "title": "README"
+      "path": "SKILL.md",
+      "title": "SKILL"
     },
     {
       "path": "contracts/README.md",
@@ -109,7 +109,7 @@
       "title": "SDKS GUIDE"
     },
     {
-      "path": "pkg/sdk/internal/core/README.md",
+      "path": "pkg/resources/README.md",
       "title": "README"
     },
     {
@@ -119,6 +119,10 @@
     {
       "path": "skills/frontal-sdk/SKILL.md",
       "title": "SKILL"
+    },
+    {
+      "path": "templates/README.md",
+      "title": "README"
     },
     {
       "path": "tests/README.md",

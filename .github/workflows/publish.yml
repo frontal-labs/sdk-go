@@ -1,17 +1,55 @@
-name: Go module release readiness
+name: Go module release
 on:
-  workflow_dispatch:
+  push:
+    tags: ["v*.*.*"]
 permissions:
   contents: read
 jobs:
-  readiness:
+  release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-go@v5
+      - uses: actions/checkout@v6
         with:
-          go-version-file: go.mod
-      - name: Check module metadata
-        run: go list ./...
-      - name: Explain release route
-        run: echo "Release Go modules with a protected vMAJOR.MINOR.PATCH Git tag."
+          fetch-depth: 0
+      - uses: actions/setup-go@v6
+        with:
+          go-version: stable
+      - name: Validate semver module tag
+        run: |
+          if [[ ! "$GITHUB_REF_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Expected a vMAJOR.MINOR.PATCH tag"
+            exit 1
+          fi
+          major="${GITHUB_REF_NAME#v}"
+          major="${major%%.*}"
+          module_path="$(sed -n 's/^module //p' go.mod)"
+          if (( major >= 2 )) && [[ "$module_path" != */v"$major" ]]; then
+            echo "Major versions 2 and later require the /v${major} module path suffix"
+            exit 1
+          fi
+      - name: Install apidiff
+        run: |
+          go install golang.org/x/exp/cmd/apidiff@latest
+          echo "$(go env GOPATH)/bin" >> "$GITHUB_PATH"
+      - name: Check API compatibility against latest prior tag
+        run: |
+          previous_tag="$(git tag --list 'v[0-9]*' --sort=-version:refname | awk -v current="$GITHUB_REF_NAME" '$0 == current { found=1; next } found { print; exit }')"
+          if [[ -n "$previous_tag" ]]; then
+            bash scripts/check_apidiff.sh "$previous_tag"
+          else
+            echo "No earlier Go release tag exists; skipping the compatibility baseline comparison."
+          fi
+      - name: Test release source
+        run: |
+          go build ./...
+          go test -race ./...
+          python3 scripts/check_contracts.py
+      - name: Publish GitHub release
+        uses: goreleaser/goreleaser-action@v6
+        with:
+          version: v2.13.3
+          args: release --clean
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

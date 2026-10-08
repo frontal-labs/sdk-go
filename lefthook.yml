@@ -1,0 +1,16 @@
+pre-commit:
+  parallel: false
+  commands:
+    gofumpt:
+      glob: "*.go"
+      run: gofumpt -w {staged_files}
+      stage_fixed: true
+    goimports:
+      glob: "*.go"
+      run: goimports -w {staged_files}
+      stage_fixed: true
+
+commit-msg:
+  commands:
+    commitlint:
+      run: npx --yes --package @commitlint/cli@19.8.1 commitlint --config commitlint.config.cjs --edit {1}

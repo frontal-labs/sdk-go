@@ -1,26 +1,32 @@
 # Go SDK architecture
 
-The repository is one Go module. `pkg/resources` is the public SDK package. Authentication, HTTP handling, headers, and URL/retry utilities remain separate packages so the client can reuse them without coupling the transport to resource types.
+The repository is one Go module. The root `frontal` package provides a unified client and service namespaces. `pkg/resources` owns the shared HTTP transport and generated route catalog; authentication, HTTP handling, headers, and URL utilities stay in focused packages.
 
 ## Package layout
 
-- `pkg/resources` owns client configuration, endpoint/request models, the generated endpoint catalog, and private HTTP transport.
+- `client.go` configures the client from functional options and `FRONTAL_*` environment variables.
+- `service.go` scopes endpoint calls to each contract service and provides generic page, polling, and SSE helpers.
+- `pkg/resources` owns request/endpoint types, the shared transport, retry policy, and generated endpoint catalog.
 - `pkg/authentication` validates API keys and applies Bearer authentication.
+- `pkg/handlers` builds requests, bounds JSON response decoding, maps API errors, and decodes Server-Sent Events.
 - `pkg/headers` defines common HTTP header names and defaults.
-- `pkg/handlers` builds JSON requests, decodes bounded JSON responses, converts API errors, and parses JSON Server-Sent Events.
 - `pkg/utils` validates and joins URLs, expands path parameters, parses timeouts, and reads `Retry-After` values.
-- `contracts/` is the source of truth for route inventory and OpenAPI shapes.
+- `contracts/` holds the committed endpoint inventory and OpenAPI snapshots.
 
-`scripts/generate_endpoints.py` turns `contracts/sdk-endpoints.json` into `pkg/resources/endpoints_generated.go`. Callers find descriptors with `resources.FindEndpoint`, list them with `resources.EndpointsFor`, and execute them through `Client.Call` or `resources.DoJSON[T]`. Endpoint-specific request and response types are not generated because committed schemas remain generic.
+`contracts/sdk-endpoints.json` generates `pkg/resources/endpoints_generated.go`. Each service exposes a copied endpoint list and a `Call(ctx, resources.Request, out)` method. The call validates that the operation belongs to the selected service before dispatch.
 
 ## Request flow
 
-`Application → resources.Client → authentication + headers → private HTTP transport → Frontal API`
+`Application → frontal.Client → Service → resources.Client → authentication + headers → net/http → Frontal API`
 
-`Client.Request` accepts a method and path directly. `Client.Call` accepts a contract endpoint and positional path parameters. Both support query values and JSON request bodies; `Client.NewRequest` and `Client.Do` support raw bodies. `Client.Stream` returns an open response for streaming endpoints; `resources.StreamEvents[T]` decodes JSON event data into `handlers.Event[T]`.
+`Service.Call` sends an inventory-backed operation with positional path parameters, query values, custom headers, and a JSON body. `Client.Request` and `Client.Core` support direct requests outside the inventory. `Service.Stream` returns an open SSE response; `Watch[T]` decodes it into a receive-only channel. Context cancellation closes the request and stream.
 
-The default base URL is `https://api.frontal.dev/v1`. Paths from the endpoint inventory omit `/v1`; paths copied from OpenAPI may include it. URL joining handles both forms without duplicating the version prefix.
+The default base URL is `https://api.frontal.dev/v1`. Paths in the endpoint inventory omit `/v1`; URL joining accepts either form without duplicating the version prefix.
 
-## Safety and lifecycle
+## Configuration and errors
 
-API keys are sent only in the Authorization header and requests are restricted to the configured API origin. The default client uses a 30-second timeout for regular requests and no client-wide timeout for streams; stream contexts still control cancellation. JSON responses are limited to 32 MiB, error bodies to 1 MiB, and only GET and HEAD requests are retried on transient failures. `Client.Request` consumes and closes response bodies; `Client.Do` and `Client.Stream` return bodies that callers must close.
+The client reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. API keys are sent only as Bearer authorization. Each HTTP attempt carries an `X-Request-ID`, `X-Frontal-Environment`, and SDK version header. Debug logs contain request metadata, not credentials or bodies.
+
+Non-success responses become `*frontal.APIError` values with status, code, request ID, and retryability. Error category helpers classify authentication, rate-limit, validation, and server failures. Only safe GET and HEAD requests retry transient statuses or network timeouts, using exponential backoff and `Retry-After` where available.
+
+Regular responses have a 30-second default timeout and are bounded to 32 MiB of JSON. Streams do not use a client-wide timeout; their request context controls cancellation. `Client.Request` consumes and closes the response body. `Client.Core.Do` and `Service.Stream` return bodies that callers must close.

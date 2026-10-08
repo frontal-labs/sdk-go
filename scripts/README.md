@@ -1,10 +1,8 @@
-# Go repository scripts
+# Project scripts
 
-`check_contracts.py` parses the committed API snapshot JSON. `generate_docs_manifest.py` indexes Markdown documentation and writes `docs/mcp.json` plus the root `mcp.json`. Both are repository maintenance utilities written in Python 3's standard library; they do not affect the Go runtime or package dependencies.
+- `check_contracts.py` verifies OpenAPI snapshot hashes, all spec operations, every SDK endpoint descriptor and client namespace, the complete AI endpoint mapping, and generated catalog drift. `go test ./contracts` resolves every OpenAPI operation to a valid HTTP request and verifies service namespaces.
+- `check_apidiff.sh <tag>` compares exported module APIs against an earlier release tag. The release workflow skips the comparison for the first release.
+- `generate_docs_manifest.py` refreshes the root and docs MCP indexes.
+- `generate_endpoints.py` regenerates the endpoint catalog from `contracts/sdk-endpoints.json`.
 
-Run them directly:
-
-```bash
-python3 scripts/check_contracts.py
-python3 scripts/generate_docs_manifest.py
-```
+The commit hooks are configured in `lefthook.yml`; `commitlint.config.cjs` applies Conventional Commits header rules.

@@ -1,16 +1,14 @@
 ---
 name: frontal-sdk-go
-description: Guidance for adding or reviewing integrations using the Frontal Go SDK.
+description: Guidance for building integrations with the unified Frontal Go SDK.
 ---
 
 # Frontal Go SDK
 
-The repository provides a generic Go client and generated endpoint descriptors. Check the committed contracts before using an operation; descriptors provide route shapes, while endpoint-specific convenience methods and typed response models are not generated yet. Follow the idioms and toolchain documented in this repository.
+Import the root package `github.com/frontal-labs/sdk-go` as `frontal` and create one context-first client with `frontal.New(opts ...frontal.Option)`. Service fields cover every namespace in `contracts/sdk-endpoints.json`.
 
-## Configuration
+Check the committed inventory before selecting an operation. Use `client.<Service>.Endpoint(method, path)` or `.Endpoints()` and dispatch with `.Call(ctx, resources.Request, out)`. Keep response types local to the caller when the contract has no declared SDK model; do not invent schemas.
 
-The client reads `FRONTAL_API_KEY` and optional `FRONTAL_API_URL` and `FRONTAL_TIMEOUT` settings. The default URL is `https://api.frontal.dev/v1`; this language does not load `.env` files automatically.
+Test requests with `net/http/httptest.Server`. Use `FetchPage[T]` for page metadata, `PollUntil[T]` for polling, and `Watch[T]` for cancellable JSON SSE streams. `*frontal.APIError` carries status, code, request ID, and retryability.
 
-## Modules
-
-See [the architecture guide](../../docs/ARCHITECTURE.md) and [the SDK overview](../../docs/OVERVIEW.md).
+Go does not load `.env` files. The client reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`; explicit functional options override environment defaults.
