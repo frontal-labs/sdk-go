@@ -11,19 +11,24 @@ import (
 	"syscall"
 	"time"
 
+	frontal "github.com/frontal-labs/sdk-go"
 	"github.com/frontal-labs/sdk-go/pkg/resources"
 )
 
 func main() {
-	client, err := resources.NewClientFromEnv()
+	client, err := frontal.New()
 	if err != nil {
 		log.Fatal(err)
+	}
+	endpoint, ok := client.Agents.Endpoint(http.MethodGet, "/agents/health")
+	if !ok {
+		log.Fatal("agents health endpoint is missing from the SDK catalog")
 	}
 
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		var result map[string]any
-		if err := client.Request(r.Context(), http.MethodGet, "/agents/health", nil, &result); err != nil {
+		if err := client.Agents.Call(r.Context(), resources.Request{Endpoint: endpoint}, &result); err != nil {
 			writeError(w, err)
 			return
 		}
