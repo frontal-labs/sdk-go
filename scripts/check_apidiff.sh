@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+apidiff() {
+	go run golang.org/x/exp/cmd/apidiff@v0.0.0-20240823005443-9b4947da3948 "$@"
+}
+
 if [[ $# -ne 1 ]]; then
 	echo "usage: scripts/check_apidiff.sh <previous-tag>" >&2
 	exit 2

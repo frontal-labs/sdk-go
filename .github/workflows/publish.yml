@@ -46,8 +46,6 @@ jobs:
             echo "Major versions 2 and later require the /v${major} module path suffix"
             exit 1
           fi
-      - name: Install apidiff
-        run: go install golang.org/x/exp/cmd/apidiff@latest
       - name: Check API compatibility against latest prior tag
         shell: bash
         env:
@@ -93,16 +91,13 @@ jobs:
           release_sha="$(git rev-parse HEAD)"
           git archive --format=tar.gz --prefix="sdk-go-${RELEASE_TAG}/" "$release_sha" > "dist/sdk-go-${RELEASE_TAG}-source.tar.gz"
       - name: Generate source SBOM
-        run: |
-          go run github.com/anchore/syft/cmd/syft@v1.41.0 dir:. -o spdx-json=dist/sbom.spdx.json
+        run: go run github.com/anchore/syft/cmd/syft@v1.41.0 dir:. -o spdx-json=dist/sbom.spdx.json
       - name: Attest source archive and SBOM
         uses: actions/attest@e8998f949152b193b063cb0ec769d69d929409be # v2.1.0
         with:
           subject-path: dist/sdk-go-${{ inputs.tag_name || github.ref_name }}-source.tar.gz
           sbom-path: dist/sbom.spdx.json
-      - name: Install GoReleaser
-        run: go install github.com/goreleaser/goreleaser/v2@v2.13.3
       - name: Publish release assets and notes
-        run: goreleaser release --clean
+        run: go run github.com/goreleaser/goreleaser/v2@v2.13.3 release --clean
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
