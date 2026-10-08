@@ -1,0 +1,125 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Frontal AI Gateway Public Contract",
+    "version": "1.0.0-generated",
+    "description": "Generated from gateway router sources and infrastructure host topology."
+  },
+  "servers": [
+    {
+      "url": "https://ai.frontal.dev",
+      "description": "Global latency endpoint"
+    },
+    {
+      "url": "https://ai.us.frontal.dev",
+      "description": "US regional endpoint"
+    },
+    {
+      "url": "https://ai.eu.frontal.dev",
+      "description": "EU regional endpoint"
+    },
+    {
+      "url": "https://ai.ap.frontal.dev",
+      "description": "AP regional endpoint"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "aiGatewayHealth",
+        "tags": [
+          "gateway"
+        ],
+        "responses": {
+          "200": {
+            "description": "Gateway health"
+          }
+        }
+      }
+    },
+    "/ai/chat/completions": {
+      "post": {
+        "operationId": "unified_ai_chat_completions",
+        "tags": [
+          "unified-api"
+        ],
+        "x_route_class": "public",
+        "responses": {
+          "200": {
+            "description": "Unified API response"
+          }
+        }
+      }
+    },
+    "/internal/embeddings": {
+      "post": {
+        "operationId": "runtime_internal_embeddings",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/models": {
+      "get": {
+        "operationId": "runtime_internal_models",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "public-sdk",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/models/defaults": {
+      "get": {
+        "operationId": "runtime_internal_models_defaults",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "public-sdk",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/predictions": {
+      "post": {
+        "operationId": "runtime_internal_predictions",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    },
+    "/internal/rerank": {
+      "post": {
+        "operationId": "runtime_internal_rerank",
+        "tags": [
+          "runtime-api"
+        ],
+        "x_route_class": "internal",
+        "responses": {
+          "200": {
+            "description": "Runtime API response"
+          }
+        }
+      }
+    }
+  }
+}

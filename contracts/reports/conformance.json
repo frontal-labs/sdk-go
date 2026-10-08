@@ -1,0 +1,8 @@
+{
+  "repository": "sdk-go",
+  "language": "Go",
+  "status": "not-started",
+  "matched": 0,
+  "unmatched": 347,
+  "note": "No Go service operations are implemented in this scaffold."
+}

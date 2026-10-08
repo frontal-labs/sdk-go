@@ -1,0 +1,18 @@
+{
+  "consumer": {
+    "repository": "sdk-go",
+    "language": "Go"
+  },
+  "contracts": {
+    "publicApi": {
+      "file": "api.openapi.json",
+      "upstream": "https://openapi.frontal.dev",
+      "sha256": "ca5f24500edd559077e932274dbe4c2fa4f0702f026200bc6727ca2ab8ac9781"
+    },
+    "aiApi": {
+      "file": "ai.openapi.generated.json",
+      "upstream": "Frontal AI gateway schema snapshot",
+      "sha256": "a82f517d8756941080402c84281b1e3fb00557eaa46800b7039aa04fc75f2aec"
+    }
+  }
+}

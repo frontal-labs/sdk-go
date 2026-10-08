@@ -1,0 +1,1517 @@
+{
+  "agents": [
+    {
+      "method": "DELETE",
+      "path": "/agents/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/agents"
+    },
+    {
+      "method": "GET",
+      "path": "/agents/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/agents/{param}/runs"
+    },
+    {
+      "method": "GET",
+      "path": "/agents/{param}/versions"
+    },
+    {
+      "method": "GET",
+      "path": "/agents/health"
+    },
+    {
+      "method": "GET",
+      "path": "/agents/runs/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/agents/runs/{param}/conversation"
+    },
+    {
+      "method": "POST",
+      "path": "/agents"
+    },
+    {
+      "method": "POST",
+      "path": "/agents/{param}/rollback"
+    },
+    {
+      "method": "POST",
+      "path": "/agents/{param}/runs"
+    },
+    {
+      "method": "PUT",
+      "path": "/agents/{param}"
+    },
+    {
+      "method": "STREAM",
+      "path": "/agents/runs/{param}/stream"
+    }
+  ],
+  "ai": [
+    {
+      "method": "GET",
+      "path": "/health"
+    },
+    {
+      "method": "GET",
+      "path": "/internal/models"
+    },
+    {
+      "method": "GET",
+      "path": "/internal/models/defaults"
+    },
+    {
+      "method": "POST",
+      "path": "/ai/chat/completions"
+    },
+    {
+      "method": "POST",
+      "path": "/internal/embeddings"
+    },
+    {
+      "method": "POST",
+      "path": "/internal/predictions"
+    },
+    {
+      "method": "POST",
+      "path": "/internal/rerank"
+    },
+    {
+      "method": "POSTFORMDATA",
+      "path": "/internal/predictions"
+    },
+    {
+      "method": "POSTRAW",
+      "path": "/internal/predictions"
+    }
+  ],
+  "audit": [
+    {
+      "method": "GET",
+      "path": "/audit/events"
+    },
+    {
+      "method": "GET",
+      "path": "/audit/events/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/audit/events"
+    },
+    {
+      "method": "POST",
+      "path": "/audit/events/batch"
+    }
+  ],
+  "auth": [
+    {
+      "method": "DELETE",
+      "path": "/auth/account/mfa/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/account/profile"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/account/security/api-keys/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/account/security/devices/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/account/sessions/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/admin/users/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/admin/users/{param}/factors/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/factors/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/auth/user/identities/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/audit-log"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/mfa"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/mfa/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/profile"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/security/api-keys"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/security/api-keys/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/security/devices"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/security/devices/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/account/sessions"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/admin/users"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/admin/users/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/admin/users/{param}/factors"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/auth/session"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/factors"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/user"
+    },
+    {
+      "method": "GET",
+      "path": "/auth/user/identities"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/mfa"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/mfa/{param}/challenge"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/mfa/{param}/verify"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/password"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/security/api-keys"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/security/devices"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/security/devices/{param}/trust"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/account/sessions/{param}/extend"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/admin/generate_link"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/admin/logout"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/admin/users"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/auth/session"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/authorize"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/factors"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/factors/{param}/challenge"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/factors/{param}/verify"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/invite"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/logout"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/otp"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/reauthenticate"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/recover"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/resend"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/signup"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/sso"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/token?grant_type=id_token"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/token?grant_type=password"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/token?grant_type=pkce"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/token?grant_type=refresh_token"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/user/identities"
+    },
+    {
+      "method": "POST",
+      "path": "/auth/verify"
+    },
+    {
+      "method": "PUT",
+      "path": "/auth/account/profile"
+    },
+    {
+      "method": "PUT",
+      "path": "/auth/account/security/api-keys/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/auth/admin/users/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/auth/user"
+    }
+  ],
+  "billing": [
+    {
+      "method": "GET",
+      "path": "/billing/addons/{param}/entitlements"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/customers/{param}/entitlements"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/customers/{param}/invoices/summary"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/customers/{param}/usage"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/customers/{param}/wallets"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/customers/portal/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/plans/{param}/entitlements"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/prices/lookup/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/subscriptions/{param}/entitlements"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/wallets/{param}/balance/real-time"
+    },
+    {
+      "method": "GET",
+      "path": "/billing/wallets/{param}/transactions"
+    },
+    {
+      "method": "GETRAW",
+      "path": "/billing/invoices/{param}/pdf"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/invoices/{param}/finalize"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/invoices/{param}/void"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/invoices/preview"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/meters/{param}/disable"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/plans/{param}/clone"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/subscriptions/{param}/activate"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/subscriptions/{param}/cancel"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/subscriptions/{param}/pause"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/subscriptions/{param}/resume"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/wallets/{param}/terminate"
+    },
+    {
+      "method": "POST",
+      "path": "/billing/wallets/{param}/top-up"
+    }
+  ],
+  "blob": [
+    {
+      "method": "DELETE",
+      "path": "/blob/object/{param}/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/blob/object/info/{param}/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/blob/object/{param}/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/copy"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/list/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/move"
+    },
+    {
+      "method": "POST",
+      "path": "/blob/object/sign/{param}/{param}"
+    },
+    {
+      "method": "POSTFORMDATA",
+      "path": "/blob/object/{param}/{param}"
+    }
+  ],
+  "connectors": [
+    {
+      "method": "DELETE",
+      "path": "/connectors/installations/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/connectors/catalog"
+    },
+    {
+      "method": "GET",
+      "path": "/connectors/catalog/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/connectors/connection-tests/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/connectors/installations"
+    },
+    {
+      "method": "GET",
+      "path": "/connectors/installations/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/diagnostics"
+    },
+    {
+      "method": "PATCH",
+      "path": "/connectors/installations/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/connectors/installations"
+    },
+    {
+      "method": "POST",
+      "path": "/connectors/installations/{param}/pause"
+    },
+    {
+      "method": "POST",
+      "path": "/connectors/installations/{param}/resume"
+    },
+    {
+      "method": "POST",
+      "path": "/connectors/sync-runs/{param}/replay"
+    }
+  ],
+  "data": [
+    {
+      "method": "GET",
+      "path": "/data/aggregations/aggregations"
+    },
+    {
+      "method": "GET",
+      "path": "/data/aggregations/aggregations/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/archival/archival/policies"
+    },
+    {
+      "method": "GET",
+      "path": "/data/archival/archival/policies/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/enrichment/enrichment/profiles"
+    },
+    {
+      "method": "GET",
+      "path": "/data/enrichment/enrichment/profiles/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/exports/exports"
+    },
+    {
+      "method": "GET",
+      "path": "/data/exports/exports/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/normalization/normalization/profiles"
+    },
+    {
+      "method": "GET",
+      "path": "/data/normalization/normalization/profiles/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/quality/quality/rulesets"
+    },
+    {
+      "method": "GET",
+      "path": "/data/quality/quality/rulesets/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/schemas/schemas"
+    },
+    {
+      "method": "GET",
+      "path": "/data/schemas/schemas/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/serving/serving/products"
+    },
+    {
+      "method": "GET",
+      "path": "/data/serving/serving/products/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/streams/streams"
+    },
+    {
+      "method": "GET",
+      "path": "/data/streams/streams/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/sync/sync/jobs"
+    },
+    {
+      "method": "GET",
+      "path": "/data/sync/sync/jobs/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/transformations/transformations"
+    },
+    {
+      "method": "GET",
+      "path": "/data/transformations/transformations/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/data/aggregations/aggregations"
+    },
+    {
+      "method": "POST",
+      "path": "/data/aggregations/aggregations/{param}/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/data/archival/archival/policies"
+    },
+    {
+      "method": "POST",
+      "path": "/data/archival/archival/policies/{param}/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/data/enrichment/enrichment/profiles"
+    },
+    {
+      "method": "POST",
+      "path": "/data/enrichment/enrichment/profiles/{param}/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/data/exports/exports"
+    },
+    {
+      "method": "POST",
+      "path": "/data/exports/exports/{param}/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/data/normalization/normalization/profiles"
+    },
+    {
+      "method": "POST",
+      "path": "/data/normalization/normalization/profiles/{param}/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/data/quality/quality/rulesets"
+    },
+    {
+      "method": "POST",
+      "path": "/data/quality/quality/rulesets/{param}/evaluations"
+    },
+    {
+      "method": "POST",
+      "path": "/data/query/query/federated"
+    },
+    {
+      "method": "POST",
+      "path": "/data/schemas/schemas"
+    },
+    {
+      "method": "POST",
+      "path": "/data/schemas/schemas/resolve"
+    },
+    {
+      "method": "POST",
+      "path": "/data/serving/serving/products"
+    },
+    {
+      "method": "POST",
+      "path": "/data/serving/serving/products/{param}/refreshes"
+    },
+    {
+      "method": "POST",
+      "path": "/data/streams/streams"
+    },
+    {
+      "method": "POST",
+      "path": "/data/streams/streams/{param}/deliveries"
+    },
+    {
+      "method": "POST",
+      "path": "/data/sync/sync/jobs"
+    },
+    {
+      "method": "POST",
+      "path": "/data/sync/sync/jobs/{param}/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/data/transformations/transformations"
+    },
+    {
+      "method": "POST",
+      "path": "/data/transformations/transformations/{param}/executions"
+    }
+  ],
+  "governance": [
+    {
+      "method": "DELETE",
+      "path": "/policies/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/roles/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/compliance/assessments"
+    },
+    {
+      "method": "GET",
+      "path": "/compliance/assessments/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/compliance/frameworks"
+    },
+    {
+      "method": "GET",
+      "path": "/compliance/score"
+    },
+    {
+      "method": "GET",
+      "path": "/compliance/violations"
+    },
+    {
+      "method": "GET",
+      "path": "/permissions"
+    },
+    {
+      "method": "GET",
+      "path": "/permissions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/policies"
+    },
+    {
+      "method": "GET",
+      "path": "/policies/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/policies/{param}/versions"
+    },
+    {
+      "method": "GET",
+      "path": "/policies/templates"
+    },
+    {
+      "method": "GET",
+      "path": "/roles"
+    },
+    {
+      "method": "GET",
+      "path": "/roles/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/access/check"
+    },
+    {
+      "method": "POST",
+      "path": "/compliance/assessments"
+    },
+    {
+      "method": "POST",
+      "path": "/compliance/violations/{param}/resolve"
+    },
+    {
+      "method": "POST",
+      "path": "/permissions"
+    },
+    {
+      "method": "POST",
+      "path": "/policies"
+    },
+    {
+      "method": "POST",
+      "path": "/policies/from-template"
+    },
+    {
+      "method": "POST",
+      "path": "/policies/validate"
+    },
+    {
+      "method": "POST",
+      "path": "/roles"
+    },
+    {
+      "method": "PUT",
+      "path": "/policies/{param}"
+    }
+  ],
+  "lineage": [
+    {
+      "method": "GET",
+      "path": "/lineage/edges"
+    },
+    {
+      "method": "GET",
+      "path": "/lineage/edges/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/lineage/graph"
+    },
+    {
+      "method": "GET",
+      "path": "/lineage/nodes"
+    },
+    {
+      "method": "GET",
+      "path": "/lineage/nodes/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/lineage/nodes/{param}/trace"
+    },
+    {
+      "method": "POST",
+      "path": "/lineage/impact"
+    }
+  ],
+  "observability": [
+    {
+      "method": "DELETE",
+      "path": "/observability/alerts/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/observability/dashboards/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/alerts"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/alerts/incidents"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/dashboards"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/dashboards/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/events/stats"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/metrics"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/metrics/list"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/traces"
+    },
+    {
+      "method": "GET",
+      "path": "/observability/traces/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/alerts"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/alerts/{param}/disable"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/alerts/{param}/enable"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/dashboards"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/dashboards/{param}/share"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/events"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/events/batch"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/logs/ingest"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/logs/query"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/metrics/ingest"
+    },
+    {
+      "method": "POST",
+      "path": "/observability/traces/query"
+    },
+    {
+      "method": "PUT",
+      "path": "/observability/alerts/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/observability/dashboards/{param}"
+    },
+    {
+      "method": "STREAM",
+      "path": "/observability/logs/stream"
+    }
+  ],
+  "ontology": [
+    {
+      "method": "DELETE",
+      "path": "/ontology/objects/object-types/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/objects/objects/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/reasoning/rules/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/relationships/relationship-types/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/relationships/relationships/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/rollouts/rollouts/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/rollups/rollups/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/schemas/schemas/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/validation/rules/{param}"
+    },
+    {
+      "method": "DELETE",
+      "path": "/ontology/versions/versions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/events/events"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/events/events/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/events/events/checkpoints/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/objects/object-types"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/objects/object-types/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/objects/objects"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/objects/objects/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/reasoning/rules"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/relationships/relationship-types"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/relationships/relationships"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/relationships/relationships/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/rollouts/rollouts"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/rollouts/rollouts/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/rollouts/rollouts/{param}/status"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/rollups/rollup-results/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/rollups/rollups"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/rollups/rollups/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/rollups/rollups/{param}/result"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/schemas/schemas"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/schemas/schemas/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/validation/rules"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/validation/rules/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/versions/release-bundles"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/versions/release-bundles/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/ontology/versions/versions/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/compare-versions"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/export"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/export-shacl"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/generate"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/infer-classes"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/infer-properties"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/engine/ontologies/validate"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/events/events"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/events/events/checkpoints"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/events/events/leases/acknowledge"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/events/events/leases/acquire"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/extract/extract/analyze"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/extract/extract/architecture"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/extract/extract/coreferences"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/extract/extract/entities"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/extract/extract/events"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/extract/extract/relations"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/extract/extract/triplets"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/reasoning/explain"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/reasoning/facts"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/reasoning/facts/load-graph"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/reasoning/reason/backward"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/reasoning/reason/forward"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/reasoning/rules"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollouts/rollouts"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollouts/rollouts/{param}/pause"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollouts/rollouts/{param}/resume"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollouts/rollouts/{param}/rollback"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollouts/rollouts/{param}/start"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollups/rollups"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollups/rollups/{param}/execute"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/rollups/rollups/{param}/preview"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/schemas/schemas"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/schemas/schemas/validate"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/transformations/transformations"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/validation/payloads/validate"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/validation/rules"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/versions/audit/verify"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/versions/release-bundles"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/versions/versions"
+    },
+    {
+      "method": "POST",
+      "path": "/ontology/versions/versions/compare"
+    },
+    {
+      "method": "PUT",
+      "path": "/ontology/objects/object-types/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/ontology/objects/objects/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/ontology/reasoning/rules/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/ontology/relationships/relationships/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/ontology/rollouts/rollouts/{param}"
+    },
+    {
+      "method": "PUT",
+      "path": "/ontology/rollups/rollups/{param}"
+    }
+  ],
+  "pipelines": [
+    {
+      "method": "GET",
+      "path": "/data/pipelines/capabilities"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/health"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/info"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/pipeline-runs"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/pipeline-runs/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/pipelines"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/pipelines/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/data/pipelines/runs"
+    },
+    {
+      "method": "POST",
+      "path": "/data/pipelines/pipelines"
+    },
+    {
+      "method": "POST",
+      "path": "/data/pipelines/runs"
+    },
+    {
+      "method": "STREAM",
+      "path": "/data/pipelines/pipeline-runs/{param}"
+    }
+  ],
+  "react": [],
+  "sandbox": [
+    {
+      "method": "GET",
+      "path": "/sandbox/languages"
+    },
+    {
+      "method": "POST",
+      "path": "/sandbox/self-test"
+    },
+    {
+      "method": "POST",
+      "path": "/sandbox/submit"
+    }
+  ],
+  "schedules": [
+    {
+      "method": "DELETE",
+      "path": "/workflows/schedules/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/schedules"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/schedules/{param}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/workflows/schedules/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/cron/parse"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/cron/validate"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/schedules"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/schedules/{param}/pause"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/schedules/{param}/resume"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/schedules/{param}/trigger"
+    }
+  ],
+  "webhooks": [
+    {
+      "method": "DELETE",
+      "path": "/webhooks/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/webhooks"
+    },
+    {
+      "method": "GET",
+      "path": "/webhooks/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/webhooks/deliveries"
+    },
+    {
+      "method": "GET",
+      "path": "/webhooks/deliveries/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/webhooks/stats"
+    },
+    {
+      "method": "POST",
+      "path": "/webhooks"
+    },
+    {
+      "method": "POST",
+      "path": "/webhooks/{param}/rotate-secret"
+    },
+    {
+      "method": "POST",
+      "path": "/webhooks/deliveries/{param}/retry"
+    },
+    {
+      "method": "PUT",
+      "path": "/webhooks/{param}"
+    }
+  ],
+  "workflows": [
+    {
+      "method": "DELETE",
+      "path": "/workflows/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/approvals"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/approvals/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/executions"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/executions/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/executions/{param}/tasks"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/runs/{param}/steps"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/tasks/{param}"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/templates"
+    },
+    {
+      "method": "GET",
+      "path": "/workflows/templates/{param}"
+    },
+    {
+      "method": "PATCH",
+      "path": "/workflows/{param}"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/{param}/archive"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/{param}/publish"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/{param}/restore"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/{param}/versions"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/approvals/{param}/approve"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/approvals/{param}/reject"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/executions"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/tasks/{param}/cancel"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/tasks/{param}/retry"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/templates"
+    },
+    {
+      "method": "POST",
+      "path": "/workflows/templates/{param}/instantiate"
+    }
+  ]
+}
