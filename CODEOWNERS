@@ -1,8 +1,7 @@
-* @sdk-team/core @sdk-team/maintainers
-/.github/ @sdk-team/maintainers
-/contracts/ @sdk-team/maintainers
-/docs/ @sdk-team/maintainers
-/pkg/resources/ @sdk-team/core
-/pkg/ @sdk-team/core
-/templates/ @sdk-team/core
-/.github/workflows/ @sdk-team/maintainers
+* @gabrielvfonseca
+/.github/ @gabrielvfonseca
+/contracts/ @gabrielvfonseca
+/docs/ @gabrielvfonseca
+/pkg/ @gabrielvfonseca
+/templates/ @gabrielvfonseca
+/.github/workflows/ @gabrielvfonseca
