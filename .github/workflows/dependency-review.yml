@@ -22,6 +22,7 @@ jobs:
         with:
           go-version: stable
           cache: true
+          cache-dependency-path: go.mod
       # GitHub's dependency-review-action requires paid GHAS for this internal repository.
       - name: Scan Go dependencies for known vulnerabilities
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.1.4 ./...
