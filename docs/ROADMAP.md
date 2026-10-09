@@ -7,5 +7,6 @@
 - [x] Cover retries, error mapping, pagination, configuration, and SSE behavior with mock HTTP servers.
 - [x] Keep README Go examples executable under `go test` and verify the committed OpenAPI snapshots and generated catalog.
 - [x] Add SDK guidance files and tagged GoReleaser release automation with same-major API compatibility checks.
-- [ ] Publish the first `v1.0.0` tag after release review.
-- [ ] Add endpoint-specific request and response types where the OpenAPI contract declares stable schemas.
+- [x] Move implementation details under `internal/` and expose one top-level package per service.
+- [x] Make the breaking package and module redesign explicit with the `/v2` module path.
+- [ ] Add operation-specific request and response types as authoritative endpoint schemas become available in committed contracts.

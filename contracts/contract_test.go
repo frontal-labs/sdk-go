@@ -8,9 +8,9 @@ import (
 	"strings"
 	"testing"
 
-	frontal "github.com/frontal-labs/sdk-go"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
-	"github.com/frontal-labs/sdk-go/pkg/utils"
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/internal/core"
+	"github.com/frontal-labs/sdk-go/v2/internal/utils"
 )
 
 //go:embed openapi/api.openapi.json openapi/ai.openapi.generated.json sdk-endpoints.json
@@ -26,7 +26,7 @@ type openAPIOperation struct {
 }
 
 func TestOpenAPIOperationsResolveToHTTPRequests(t *testing.T) {
-	base, err := utils.ParseBaseURL(resources.DefaultBaseURL)
+	base, err := utils.ParseBaseURL(core.DefaultBaseURL)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -92,7 +92,7 @@ func TestOpenAPIOperationsResolveToHTTPRequests(t *testing.T) {
 }
 
 func catalogContainsEndpoint(service, method, path string) bool {
-	for _, endpoint := range resources.Endpoints() {
+	for _, endpoint := range core.Endpoints() {
 		candidateMethod := endpoint.Method
 		switch candidateMethod {
 		case "GETRAW", "STREAM":
@@ -161,62 +161,56 @@ func TestEverySDKServiceHasAClientNamespace(t *testing.T) {
 	t.Setenv("FRONTAL_API_URL", "")
 	t.Setenv("FRONTAL_TIMEOUT", "")
 	t.Setenv("FRONTAL_DEBUG", "0")
-	client, err := frontal.New(frontal.WithAPIKey("frt_contract_test"), frontal.WithBaseURL(resources.DefaultBaseURL), frontal.WithEnvironment("test"))
+	client, err := frontal.New(frontal.WithAPIKey("frt_contract_test"), frontal.WithBaseURL(core.DefaultBaseURL), frontal.WithEnvironment("test"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for name := range inventory {
-		service := serviceFor(client, name)
-		if service == nil {
+		if !hasService(client, name) {
 			t.Errorf("SDK service %q has no unified client namespace", name)
 			continue
-		}
-		if service.Name() != name {
-			t.Errorf("namespace for %q reports name %q", name, service.Name())
 		}
 	}
 }
 
-func serviceFor(client *frontal.Client, name string) *frontal.Service {
+func hasService(client *frontal.Client, name string) bool {
 	switch name {
 	case "ai":
-		return client.AI
+		return client.AI != nil
 	case "agents":
-		return client.Agents
+		return client.Agents != nil
 	case "audit":
-		return client.Audit
+		return client.Audit != nil
 	case "auth":
-		return client.Auth
+		return client.Auth != nil
 	case "billing":
-		return client.Billing
+		return client.Billing != nil
 	case "blob":
-		return client.Blob
+		return client.Blob != nil
 	case "connectors":
-		return client.Connectors
+		return client.Connectors != nil
 	case "data":
-		return client.Data
+		return client.Data != nil
 	case "governance":
-		return client.Governance
+		return client.Governance != nil
 	case "lineage":
-		return client.Lineage
+		return client.Lineage != nil
 	case "observability":
-		return client.Observability
+		return client.Observability != nil
 	case "ontology":
-		return client.Ontology
+		return client.Ontology != nil
 	case "pipelines":
-		return client.Pipelines
-	case "react":
-		return client.React
+		return client.Pipelines != nil
 	case "sandbox":
-		return client.Sandbox
+		return client.Sandbox != nil
 	case "schedules":
-		return client.Schedules
+		return client.Schedules != nil
 	case "webhooks":
-		return client.Webhooks
+		return client.Webhooks != nil
 	case "workflows":
-		return client.Workflows
+		return client.Workflows != nil
 	default:
-		return nil
+		return false
 	}
 }
 

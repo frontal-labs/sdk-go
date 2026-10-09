@@ -9,8 +9,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	frontal "github.com/frontal-labs/sdk-go"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/agents"
 )
 
 func main() {
@@ -26,7 +26,7 @@ func main() {
 		log.Fatal("agents health endpoint is missing from the SDK catalog")
 	}
 	var health map[string]any
-	if err := client.Agents.Call(ctx, resources.Request{Endpoint: endpoint}, &health); err != nil {
+	if err := client.Agents.Call(ctx, agents.Request{Endpoint: endpoint}, &health); err != nil {
 		log.Fatal(err)
 	}
 	if err := json.NewEncoder(os.Stdout).Encode(health); err != nil {

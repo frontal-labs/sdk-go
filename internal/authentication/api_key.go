@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/frontal-labs/sdk-go/pkg/headers"
+	"github.com/frontal-labs/sdk-go/v2/internal/headers"
 )
 
 // ErrInvalidAPIKey is returned when an API key is not in a supported format.

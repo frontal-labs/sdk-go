@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	frontal "github.com/frontal-labs/sdk-go"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/agents"
 )
 
 func ExampleNew() {
@@ -28,7 +28,7 @@ func ExampleNew() {
 	}
 	endpoint, _ := client.Agents.Endpoint(http.MethodGet, "/agents/health")
 	var health map[string]string
-	err = client.Agents.Call(context.Background(), resources.Request{Endpoint: endpoint}, &health)
+	err = client.Agents.Call(context.Background(), agents.Request{Endpoint: endpoint}, &health)
 	if err != nil {
 		panic(err)
 	}
@@ -37,7 +37,7 @@ func ExampleNew() {
 	// Output: ok
 }
 
-func ExampleService_Call() {
+func ExampleBindOperation() {
 	type chatRequest struct {
 		Model    string `json:"model"`
 		Messages []struct {
@@ -64,7 +64,7 @@ func ExampleService_Call() {
 	if err != nil {
 		panic(err)
 	}
-	operation, err := frontal.BindOperation[chatRequest, chatResponse](client.AI, http.MethodPost, "/ai/chat/completions")
+	operation, err := frontal.BindOperation[chatRequest, chatResponse](client, "ai", http.MethodPost, "/ai/chat/completions")
 	if err != nil {
 		panic(err)
 	}

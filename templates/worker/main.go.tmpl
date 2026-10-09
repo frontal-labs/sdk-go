@@ -8,8 +8,8 @@ import (
 	"syscall"
 	"time"
 
-	frontal "github.com/frontal-labs/sdk-go"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/agents"
 )
 
 func main() {
@@ -42,7 +42,7 @@ func main() {
 	}
 }
 
-func refresh(ctx context.Context, client *frontal.Client, endpoint resources.Endpoint) error {
+func refresh(ctx context.Context, client *frontal.Client, endpoint agents.Endpoint) error {
 	var health map[string]any
-	return client.Agents.Call(ctx, resources.Request{Endpoint: endpoint}, &health)
+	return client.Agents.Call(ctx, agents.Request{Endpoint: endpoint}, &health)
 }

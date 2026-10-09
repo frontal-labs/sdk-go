@@ -49,8 +49,8 @@ jobs:
         run: go test -run '^Example' ./...
       - name: Check package documentation
         run: |
-          go doc github.com/frontal-labs/sdk-go
-          go doc github.com/frontal-labs/sdk-go/pkg/resources
+          go doc github.com/frontal-labs/sdk-go/v2
+          go doc github.com/frontal-labs/sdk-go/v2/internal/core
       - name: Check API contracts
         if: runner.os == 'Linux'
         run: python3 scripts/check_contracts.py

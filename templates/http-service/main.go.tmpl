@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	frontal "github.com/frontal-labs/sdk-go"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/agents"
 )
 
 func main() {
@@ -28,7 +28,7 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("GET /health", func(w http.ResponseWriter, r *http.Request) {
 		var result map[string]any
-		if err := client.Agents.Call(r.Context(), resources.Request{Endpoint: endpoint}, &result); err != nil {
+		if err := client.Agents.Call(r.Context(), agents.Request{Endpoint: endpoint}, &result); err != nil {
 			writeError(w, err)
 			return
 		}

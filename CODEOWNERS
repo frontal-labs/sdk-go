@@ -2,6 +2,6 @@
 /.github/ @gabrielvfonseca
 /contracts/ @gabrielvfonseca
 /docs/ @gabrielvfonseca
-/pkg/ @gabrielvfonseca
+/internal/ @gabrielvfonseca
 /templates/ @gabrielvfonseca
 /.github/workflows/ @gabrielvfonseca

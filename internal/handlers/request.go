@@ -9,7 +9,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/frontal-labs/sdk-go/pkg/headers"
+	"github.com/frontal-labs/sdk-go/v2/internal/headers"
 )
 
 // NewRequest creates an HTTP request with the supplied body reader.

@@ -8,73 +8,69 @@ One context-first Go client for Frontal AI, agents, workflows, and every other s
 
 ## Quickstart
 
-With `FRONTAL_API_KEY` set and `ctx` in scope, call a service operation:
+With `FRONTAL_API_KEY` set, create one client and call a service operation:
 
 ```go
-client, err := frontal.New()
-if err != nil { log.Fatal(err) }
-var health map[string]any
-err = client.Agents.Call(ctx, resources.Request{Endpoint: resources.Endpoint{Service: "agents", Method: "GET", Path: "/agents/health"}}, &health)
-if err != nil { log.Fatal(err) }
+package main
+
+import (
+	"context"
+	"log"
+
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/agents"
+)
+
+func main() {
+	client, err := frontal.New()
+	if err != nil {
+		log.Fatal(err)
+	}
+	endpoint, ok := client.Agents.Endpoint("GET", "/agents/health")
+	if !ok {
+		log.Fatal("agents health endpoint is unavailable")
+	}
+	var health struct {
+		Status string `json:"status"`
+	}
+	if err := client.Agents.Call(context.Background(), agents.Request{Endpoint: endpoint}, &health); err != nil {
+		log.Fatal(err)
+	}
+	log.Println(health.Status)
+}
 ```
 
-The [`ExampleNew`](./example_test.go) test runs the same client call against an `httptest.Server`, so the quickstart behavior stays executable without a Frontal backend.
+Import `github.com/frontal-labs/sdk-go/v2/agents` for the service request type. The example in [`example_test.go`](./example_test.go) runs against an `httptest.Server`.
 
 ## Client and services
 
-`frontal.New(opts ...Option)` reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. Go does not load `.env` files automatically. `FRONTAL_ENV` defaults to `development`. Options include `WithAPIKey`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`, `WithMaxRetries`, `WithUserAgent`, `WithLogger`, and `WithMaxResponseBytes`. Custom HTTP clients retain their transport and redirect policy, with redirects restricted to the configured API origin.
+`frontal.New(opts ...frontal.Option)` reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. Go does not load `.env` files automatically. `FRONTAL_ENV` defaults to `development`. Options include `WithAPIKey`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`, `WithMaxRetries`, `WithUserAgent`, `WithLogger`, and `WithMaxResponseBytes`.
 
-The returned client exposes `AI`, `Agents`, `Workflows`, `Audit`, `Auth`, `Billing`, `Blob`, `Connectors`, `Data`, `Governance`, `Lineage`, `Observability`, `Ontology`, `Pipelines`, `Sandbox`, `Schedules`, and `Webhooks`. Each service lists its contract operations with `Endpoints` and sends an operation with `Call(ctx, resources.Request, out)`. Use `client.Core` or `client.Request` for direct HTTP access.
+The client exposes one service client for each contract group. Each service package owns its endpoint catalog and provides `Endpoints`, `Endpoint`, `Call`, and `Stream`. Use service-scoped calls as the contract-checked API while operation-specific types are added from stable schemas. `client.Request` supports direct HTTP access outside the inventory.
 
-```go
-type ChatMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
-}
-type ChatRequest struct {
-	Model    string        `json:"model"`
-	Messages []ChatMessage `json:"messages"`
-}
-type ChatResponse struct {
-	ID    string `json:"id"`
-	Model string `json:"model"`
-}
+`frontal.BindOperation[Request, Response]` binds a known route to caller-defined types. `frontal.Field[T]`, `frontal.F`, and `frontal.Null[T]()` represent omitted, explicit, and null request fields. `frontal.ExtraFields` preserves response properties not represented in a local struct.
 
-chat, err := frontal.BindOperation[ChatRequest, ChatResponse](client.AI, http.MethodPost, "/ai/chat/completions")
-if err != nil { log.Fatal(err) }
-result, err := chat.Call(ctx, frontal.TypedRequest[ChatRequest]{
-	Body: &ChatRequest{Model: "model-id", Messages: []ChatMessage{{Role: "user", Content: "Hello"}}},
-})
-```
+`frontal.FetchPage[T]` decodes collection and cursor metadata. `frontal.Watch[T]` streams JSON SSE events; cancel the context to stop the stream. `frontal.PollUntil[T]` polls with a caller-supplied fetch and completion check.
 
-[`ExampleService_Call`](./example_test.go) runs this AI operation against an `httptest.Server`.
-
-`BindOperation[Request, Response]` binds a known endpoint to caller-defined request and response types, and `TypedRequest[Body]` carries typed bodies, path values, query parameters, and headers. Define those types from the authoritative API contract. The SDK keeps `Service.Call` and `CallJSON[T]` as lower-level options. First-party operation-specific types require complete authoritative schemas for the full endpoint inventory; the current snapshots do not define them all.
-
-`FetchPage[T]` decodes collection and cursor metadata. `Watch[T]` streams JSON SSE events to a receive-only channel; cancel its context to close the request. `PollUntil[T]` polls with a caller-supplied fetch and completion check.
-
-API failures are `*frontal.APIError` values discoverable through `errors.As`, with status, code, request ID, retryability, and a parsed `RetryAfter` delay when supplied. Use `IsAuthError`, `IsRateLimitError`, `IsValidationError`, `IsServerError`, and `IsNetworkError` to classify failures. JSON responses are limited to 32 MiB by default; set `WithMaxResponseBytes` for APIs that return larger documents. `WithLogger` injects a `log/slog` logger for metadata-only debug logs when `WithDebug(true)` is enabled.
+API failures are `*frontal.APIError` values discoverable through `errors.As`, with status, code, request ID, and retryability. Use `IsAuthError`, `IsRateLimitError`, `IsValidationError`, `IsServerError`, and `IsNetworkError` to classify failures.
 
 ## Package layout
 
 | Path | Purpose |
 | --- | --- |
-| `client.go`, `service.go` | Unified client, service namespaces, pagination, polling, and streams |
-| `pkg/resources/` | Shared HTTP client and generated endpoint catalog |
-| `pkg/authentication/` | API key validation and Bearer authentication |
-| `pkg/handlers/` | HTTP request/response handling, API errors, and SSE decoding |
-| `pkg/headers/` | HTTP header names and defaults |
-| `pkg/utils/` | URL, timeout, and retry helpers |
-| `contracts/` | Committed OpenAPI snapshots and route inventory |
+| `client.go`, `service.go` | Unified client, generic request binding, pagination, polling, and streams |
+| Top-level service packages | Service clients and generated endpoint catalogs |
+| `internal/` | Private transport, authentication, response handling, headers, and URL helpers |
+| `contracts/` | OpenAPI snapshots and endpoint inventory |
 
 ## Development
 
-The module supports Go 1.22 and 1.23. CI uses gofumpt, goimports, golangci-lint (govet, staticcheck, errcheck, revive), and runs tests with the race detector.
+The module supports Go 1.22 and 1.23. CI uses gofumpt, goimports, golangci-lint (govet, staticcheck, errcheck, revive), and race tests.
 
 ```bash
 gofumpt -w .
 goimports -w .
-go generate ./pkg/resources
+go generate ./internal/core
 go build ./...
 golangci-lint run ./...
 go test -race ./...

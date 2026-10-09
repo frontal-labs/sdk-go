@@ -1,5 +1,5 @@
-// Package resources provides the Frontal API client and endpoint catalog.
-package resources
+// Package core provides the internal Frontal API client and endpoint catalog.
+package core
 
 import (
 	"bytes"
@@ -18,10 +18,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frontal-labs/sdk-go/pkg/authentication"
-	"github.com/frontal-labs/sdk-go/pkg/handlers"
-	"github.com/frontal-labs/sdk-go/pkg/headers"
-	"github.com/frontal-labs/sdk-go/pkg/utils"
+	"github.com/frontal-labs/sdk-go/v2/internal/authentication"
+	"github.com/frontal-labs/sdk-go/v2/internal/handlers"
+	"github.com/frontal-labs/sdk-go/v2/internal/headers"
+	"github.com/frontal-labs/sdk-go/v2/internal/utils"
 )
 
 const (
@@ -31,7 +31,7 @@ const (
 	DefaultTimeout = 30 * time.Second
 	// DefaultMaxResponseBytes is the default maximum decoded JSON response size.
 	DefaultMaxResponseBytes int64 = handlers.MaxJSONResponseBytes
-	defaultUserAgent              = "frontal-go/1.0.0"
+	defaultUserAgent              = "frontal-go/2.0.0"
 	defaultMaxRetries             = 2
 	maxRetriesLimit               = 10
 	defaultRetryDelay             = 100 * time.Millisecond
@@ -679,7 +679,7 @@ func (client *Client) applyHeaders(request *http.Request) {
 		}
 	}
 	request.Header.Set("X-Frontal-Environment", client.environment)
-	request.Header.Set("X-Frontal-Core", "go@1.0.0")
+	request.Header.Set("X-Frontal-Core", "go@2.0.0")
 }
 
 func (client *Client) handleResponse(response *http.Response, out any) error {

@@ -10,74 +10,30 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/frontal-labs/sdk-go/pkg/handlers"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	"github.com/frontal-labs/sdk-go/v2/internal/core"
+	"github.com/frontal-labs/sdk-go/v2/internal/handlers"
 )
 
-// ErrUnknownEndpoint is returned when a service call uses an unlisted operation.
-var ErrUnknownEndpoint = errors.New("frontal: endpoint is not in this service's contract")
+// ErrUnknownEndpoint reports a request that does not match the committed endpoint inventory.
+var ErrUnknownEndpoint = errors.New("frontal: endpoint is not in the contract inventory")
 
-// Service is one namespace on a shared Frontal client. Use Endpoints to
-// inspect its contract and Call to send an operation with Go request values.
-type Service struct {
-	name string
-	core *resources.Client
+// Endpoint identifies an operation from the committed endpoint inventory.
+type Endpoint struct {
+	Service string `json:"service"`
+	Method  string `json:"method"`
+	Path    string `json:"path"`
 }
 
-func newService(core *resources.Client, name string) *Service {
-	return &Service{name: name, core: core}
+// Request describes a contract-backed request sent through Client.Call.
+type Request struct {
+	Endpoint   Endpoint
+	PathParams []string
+	Query      url.Values
+	Headers    http.Header
+	Body       any
 }
 
-// Name returns the service's contract name.
-func (service *Service) Name() string {
-	if service == nil {
-		return ""
-	}
-	return service.name
-}
-
-// Endpoints returns a copy of this service's contract-backed operations.
-func (service *Service) Endpoints() []resources.Endpoint {
-	if service == nil {
-		return nil
-	}
-	return resources.EndpointsFor(service.name)
-}
-
-// Endpoint finds a method/path operation in this service's contract.
-func (service *Service) Endpoint(method, path string) (resources.Endpoint, bool) {
-	if service == nil {
-		return resources.Endpoint{}, false
-	}
-	return resources.FindEndpoint(service.name, method, path)
-}
-
-// Call validates that request belongs to this service, then sends it. Path
-// parameters are supplied in contract order through Request.PathParams.
-func (service *Service) Call(ctx context.Context, request resources.Request, out any) error {
-	if service == nil || service.core == nil {
-		return errors.New("frontal: service is not configured")
-	}
-	endpoint, ok := resources.FindEndpoint(service.name, request.Endpoint.Method, request.Endpoint.Path)
-	if !ok {
-		return fmt.Errorf("%w: %s %s for %s", ErrUnknownEndpoint, request.Endpoint.Method, request.Endpoint.Path, service.name)
-	}
-	request.Endpoint = endpoint
-	return service.core.Call(ctx, request, out)
-}
-
-// CallJSON sends a contract operation and decodes the response into T.
-func CallJSON[T any](ctx context.Context, service *Service, request resources.Request) (T, error) {
-	var result T
-	if service == nil {
-		return result, errors.New("frontal: service is nil")
-	}
-	err := service.Call(ctx, request, &result)
-	return result, err
-}
-
-// TypedRequest contains the caller-defined body and parameters for a bound
-// operation. A nil Body omits the JSON request body.
+// TypedRequest contains a caller-defined body and parameters for a bound operation.
 type TypedRequest[Body any] struct {
 	PathParams []string
 	Query      url.Values
@@ -85,44 +41,49 @@ type TypedRequest[Body any] struct {
 	Body       *Body
 }
 
-// Operation binds an endpoint to caller-defined request and response types.
-// Use BindOperation to ensure the endpoint belongs to the service contract.
-type Operation[Request, Response any] struct {
-	service  *Service
-	endpoint resources.Endpoint
+// Operation binds endpoint identity to caller-defined request and response types.
+type Operation[RequestBody, Response any] struct {
+	client   *Client
+	endpoint Endpoint
 }
 
-// BindOperation binds an endpoint in service to request and response types.
-// The types are supplied by the caller from the authoritative API contract.
-func BindOperation[Request, Response any](service *Service, method, path string) (*Operation[Request, Response], error) {
-	if service == nil || service.core == nil {
-		return nil, errors.New("frontal: service is not configured")
+// BindOperation binds a route in service to caller-defined types.
+func BindOperation[RequestBody, Response any](client *Client, service, method, path string) (*Operation[RequestBody, Response], error) {
+	if client == nil || client.core == nil {
+		return nil, errors.New("frontal: client is not configured")
 	}
-	endpoint, ok := service.Endpoint(method, path)
+	endpoint, ok := core.FindEndpoint(service, method, path)
 	if !ok {
-		return nil, fmt.Errorf("%w: %s %s for %s", ErrUnknownEndpoint, method, path, service.name)
+		return nil, fmt.Errorf("%w: %s %s for %s", ErrUnknownEndpoint, method, path, service)
 	}
-	return &Operation[Request, Response]{service: service, endpoint: endpoint}, nil
+	return &Operation[RequestBody, Response]{client: client, endpoint: Endpoint{Service: endpoint.Service, Method: endpoint.Method, Path: endpoint.Path}}, nil
 }
 
-// Call sends a bound operation with its request type and decodes its response
-// into the operation's response type.
-func (operation *Operation[Request, Response]) Call(ctx context.Context, request TypedRequest[Request]) (Response, error) {
+// Call sends a bound operation and decodes its response into Response.
+func (operation *Operation[RequestBody, Response]) Call(ctx context.Context, request TypedRequest[RequestBody]) (Response, error) {
 	var zero Response
-	if operation == nil || operation.service == nil || operation.service.core == nil {
+	if operation == nil || operation.client == nil {
 		return zero, errors.New("frontal: operation is not configured")
 	}
-	return CallJSON[Response](ctx, operation.service, resources.Request{
-		Endpoint:   operation.endpoint,
-		PathParams: request.PathParams,
-		Query:      request.Query,
-		Headers:    request.Headers,
-		Body:       request.Body,
-	})
+	var result Response
+	err := operation.client.Call(ctx, Request{
+		Endpoint: operation.endpoint, PathParams: request.PathParams,
+		Query: request.Query, Headers: request.Headers, Body: request.Body,
+	}, &result)
+	return result, err
 }
 
-// Page is one decoded page from a paginated endpoint. Pass NextCursor back in
-// the request query field using the endpoint's cursor parameter to fetch the next page.
+// CallJSON sends a request and decodes the response into T.
+func CallJSON[T any](ctx context.Context, client *Client, request Request) (T, error) {
+	var result T
+	if client == nil {
+		return result, errors.New("frontal: client is nil")
+	}
+	err := client.Call(ctx, request, &result)
+	return result, err
+}
+
+// Page is one decoded page from a cursor-paginated response.
 type Page[T any] struct {
 	Data       []T    `json:"data"`
 	NextCursor string `json:"nextCursor,omitempty"`
@@ -130,15 +91,14 @@ type Page[T any] struct {
 	Total      *int64 `json:"total,omitempty"`
 }
 
-// FetchPage fetches a page and extracts a collection from a JSON envelope.
-// collectionKey may be "data", "workflows", or another top-level array key.
-func FetchPage[T any](ctx context.Context, service *Service, request resources.Request, collectionKey string) (Page[T], error) {
+// FetchPage decodes one collection page from a response envelope.
+func FetchPage[T any](ctx context.Context, client *Client, request Request, collectionKey string) (Page[T], error) {
 	var page Page[T]
-	if service == nil {
-		return page, errors.New("frontal: service is nil")
+	if client == nil {
+		return page, errors.New("frontal: client is nil")
 	}
 	var envelope map[string]json.RawMessage
-	if err := service.Call(ctx, request, &envelope); err != nil {
+	if err := client.Call(ctx, request, &envelope); err != nil {
 		return page, err
 	}
 	if collectionKey == "" {
@@ -186,33 +146,18 @@ func firstNonEmpty(values ...string) string {
 	return ""
 }
 
-// Stream sends an SSE request for an endpoint in this service. The caller owns
-// and must close the response body; the request context cancels the stream.
-func (service *Service) Stream(ctx context.Context, request resources.Request) (*http.Response, error) {
-	if service == nil || service.core == nil {
-		return nil, errors.New("frontal: service is not configured")
-	}
-	endpoint, ok := resources.FindEndpoint(service.name, request.Endpoint.Method, request.Endpoint.Path)
-	if !ok {
-		return nil, fmt.Errorf("%w: %s %s for %s", ErrUnknownEndpoint, request.Endpoint.Method, request.Endpoint.Path, service.name)
-	}
-	request.Endpoint = endpoint
-	return service.core.Stream(ctx, request)
-}
-
 // StreamItem carries a decoded event or a terminal stream error.
 type StreamItem[T any] struct {
 	Event *handlers.Event[T]
 	Err   error
 }
 
-// Watch opens a contract-backed SSE endpoint and returns decoded events on a
-// receive-only channel. Cancel the context to stop the request and goroutine.
-func Watch[T any](ctx context.Context, service *Service, request resources.Request) (<-chan StreamItem[T], error) {
+// Watch opens a contract-backed JSON SSE stream and returns decoded events.
+func Watch[T any](ctx context.Context, client *Client, request Request) (<-chan StreamItem[T], error) {
 	if ctx == nil {
 		return nil, errors.New("frontal: watch context is required")
 	}
-	response, err := service.Stream(ctx, request)
+	response, err := client.Stream(ctx, request)
 	if err != nil {
 		return nil, err
 	}
@@ -241,8 +186,7 @@ func Watch[T any](ctx context.Context, service *Service, request resources.Reque
 	return items, nil
 }
 
-// PollUntil fetches at interval until done reports a completed value or ctx
-// is cancelled. The first fetch happens immediately.
+// PollUntil fetches at interval until done reports a completed value or ctx is cancelled.
 func PollUntil[T any](ctx context.Context, interval time.Duration, fetch func(context.Context) (T, error), done func(T) bool) (T, error) {
 	var zero T
 	if ctx == nil {
@@ -270,8 +214,7 @@ func PollUntil[T any](ctx context.Context, interval time.Duration, fetch func(co
 			}
 			return zero, err
 		}
-		lastValue = value
-		hasValue = true
+		lastValue, hasValue = value, true
 		if err := ctx.Err(); err != nil {
 			return value, err
 		}

@@ -13,8 +13,8 @@ import (
 	"testing"
 	"time"
 
-	frontal "github.com/frontal-labs/sdk-go"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/agents"
 )
 
 func newTestClient(t *testing.T, server *httptest.Server, options ...frontal.Option) *frontal.Client {
@@ -44,7 +44,7 @@ func TestUnifiedClientDispatchesServiceCall(t *testing.T) {
 		if got := request.Header.Get("X-Frontal-Environment"); got != "test" {
 			t.Errorf("environment = %q", got)
 		}
-		if got := request.Header.Get("X-Frontal-Core"); got != "go@1.0.0" {
+		if got := request.Header.Get("X-Frontal-Core"); got != "go@2.0.0" {
 			t.Errorf("SDK header = %q", got)
 		}
 		if got := request.Header.Get("X-Request-ID"); len(got) != 36 {
@@ -63,14 +63,14 @@ func TestUnifiedClientDispatchesServiceCall(t *testing.T) {
 	if !ok {
 		t.Fatal("agents health endpoint missing")
 	}
-	err := client.Agents.Call(context.Background(), resources.Request{Endpoint: endpoint}, &health)
+	err := client.Agents.Call(context.Background(), agents.Request{Endpoint: endpoint}, &health)
 	if err != nil {
 		t.Fatalf("call agents health: %v", err)
 	}
 	if health.Status != "ok" {
 		t.Fatalf("health status = %q", health.Status)
 	}
-	if client.AI.Name() != "ai" || client.Workflows.Name() != "workflows" || client.Webhooks.Name() != "webhooks" {
+	if len(client.AI.Endpoints()) == 0 || len(client.Workflows.Endpoints()) == 0 || len(client.Webhooks.Endpoints()) == 0 {
 		t.Fatal("unified client service fields are not initialized")
 	}
 }
@@ -80,8 +80,8 @@ func TestServiceCallRejectsAnEndpointOutsideItsContract(t *testing.T) {
 	if err != nil {
 		t.Fatalf("create client: %v", err)
 	}
-	err = client.Agents.Call(context.Background(), resources.Request{
-		Endpoint: resources.Endpoint{Service: "workflows", Method: http.MethodGet, Path: "/workflows"},
+	err = client.Call(context.Background(), frontal.Request{
+		Endpoint: frontal.Endpoint{Service: "workflows", Method: http.MethodGet, Path: "/workflows"},
 	}, nil)
 	if !errors.Is(err, frontal.ErrUnknownEndpoint) {
 		t.Fatalf("expected unknown endpoint error, got %v", err)
@@ -101,8 +101,8 @@ func TestRetryUsesRetryAfterAndSucceeds(t *testing.T) {
 	defer server.Close()
 	client := newTestClient(t, server, frontal.WithMaxRetries(1), frontal.WithRetryDelay(0))
 	var result map[string]string
-	if err := client.Agents.Call(context.Background(), resources.Request{
-		Endpoint: resources.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
+	if err := client.Call(context.Background(), frontal.Request{
+		Endpoint: frontal.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
 	}, &result); err != nil {
 		t.Fatalf("call after retry: %v", err)
 	}
@@ -124,8 +124,8 @@ func TestRawGETRetriesBeforeWritingSuccessfulBody(t *testing.T) {
 	defer server.Close()
 	client := newTestClient(t, server, frontal.WithMaxRetries(1), frontal.WithRetryDelay(0))
 	var output bytes.Buffer
-	err := client.Billing.Call(context.Background(), resources.Request{
-		Endpoint:   resources.Endpoint{Service: "billing", Method: "GETRAW", Path: "/billing/invoices/{param}/pdf"},
+	err := client.Call(context.Background(), frontal.Request{
+		Endpoint:   frontal.Endpoint{Service: "billing", Method: "GETRAW", Path: "/billing/invoices/{param}/pdf"},
 		PathParams: []string{"inv_1"},
 	}, &output)
 	if err != nil {
@@ -145,8 +145,8 @@ func TestAPIErrorCarriesCategoryAndRequestID(t *testing.T) {
 	}))
 	defer server.Close()
 	client := newTestClient(t, server)
-	err := client.Agents.Call(context.Background(), resources.Request{
-		Endpoint: resources.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
+	err := client.Call(context.Background(), frontal.Request{
+		Endpoint: frontal.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
 	}, nil)
 	var apiError *frontal.APIError
 	if !errors.As(err, &apiError) {
@@ -168,8 +168,8 @@ func TestAPIErrorReadsCamelCaseRequestIDFromBody(t *testing.T) {
 	}))
 	defer server.Close()
 	client := newTestClient(t, server)
-	err := client.Agents.Call(context.Background(), resources.Request{
-		Endpoint: resources.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
+	err := client.Call(context.Background(), frontal.Request{
+		Endpoint: frontal.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
 	}, nil)
 	var apiError *frontal.APIError
 	if !errors.As(err, &apiError) {
@@ -190,8 +190,8 @@ func TestFetchPageReadsCollectionAndCursor(t *testing.T) {
 	defer server.Close()
 	client := newTestClient(t, server)
 	endpoint, _ := client.Workflows.Endpoint(http.MethodGet, "/workflows")
-	page, err := frontal.FetchPage[map[string]string](context.Background(), client.Workflows, resources.Request{
-		Endpoint: endpoint,
+	page, err := frontal.FetchPage[map[string]string](context.Background(), client, frontal.Request{
+		Endpoint: frontal.Endpoint{Service: "workflows", Method: endpoint.Method, Path: endpoint.Path},
 		Query:    map[string][]string{"status": {"active"}},
 	}, "workflows")
 	if err != nil {
@@ -222,8 +222,8 @@ func TestWatchStreamsEventsAndUsesRequestContext(t *testing.T) {
 	defer cancel()
 	items, err := frontal.Watch[struct {
 		Value string `json:"value"`
-	}](ctx, client.Agents, resources.Request{
-		Endpoint:   resources.Endpoint{Service: "agents", Method: "STREAM", Path: "/agents/runs/{param}/stream"},
+	}](ctx, client, frontal.Request{
+		Endpoint:   frontal.Endpoint{Service: "agents", Method: "STREAM", Path: "/agents/runs/{param}/stream"},
 		PathParams: []string{"run-1"},
 	})
 	if err != nil {
@@ -259,8 +259,8 @@ func TestNewReadsEnvironmentConfiguration(t *testing.T) {
 		t.Fatalf("create client from env: %v", err)
 	}
 	var result map[string]string
-	if err := client.Agents.Call(context.Background(), resources.Request{
-		Endpoint: resources.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
+	if err := client.Call(context.Background(), frontal.Request{
+		Endpoint: frontal.Endpoint{Service: "agents", Method: http.MethodGet, Path: "/agents/health"},
 	}, &result); err != nil {
 		t.Fatalf("call with env client: %v", err)
 	}

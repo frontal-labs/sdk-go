@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/frontal-labs/sdk-go/pkg/headers"
-	"github.com/frontal-labs/sdk-go/pkg/utils"
+	"github.com/frontal-labs/sdk-go/v2/internal/headers"
+	"github.com/frontal-labs/sdk-go/v2/internal/utils"
 )
 
 const (

@@ -6,8 +6,8 @@ Install Go 1.22 or 1.23 and the format, lint, and hook tools listed in [`docs/ON
 
 ## Make a change
 
-- Keep the public unified client in the root `frontal` package and shared transport behavior in `pkg/resources`. Keep auth and HTTP helpers in their matching support packages.
-- Use `resources.Endpoint` descriptors generated from `contracts/sdk-endpoints.json`; do not guess endpoint paths or schemas.
+- Keep the public unified client in the root `frontal` package, service clients in top-level service packages, and shared transport behavior private under `internal/`.
+- Use `frontal.Endpoint` descriptors generated from `contracts/sdk-endpoints.json`; do not guess endpoint paths or schemas.
 - Keep tests beside the source they exercise in `*_test.go` files.
 - Use gofumpt, goimports, golangci-lint (govet, staticcheck, errcheck, revive), `go build`, and `go test -race`.
 - Keep contracts and generated reports synchronized when public endpoint coverage changes.

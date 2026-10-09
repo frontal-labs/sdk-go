@@ -1,6 +1,7 @@
 //go:generate python3 ../../scripts/generate_endpoints.py
+//go:generate python3 ../../scripts/generate_services.py
 
-package resources
+package core
 
 import "strings"
 

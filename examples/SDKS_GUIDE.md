@@ -1,6 +1,6 @@
 # Frontal Go SDK guide
 
-Create one context-first client with `frontal.New(opts ...frontal.Option)`. Its service fields (`client.AI`, `client.Agents`, and the other contract groups) expose the generated operation catalog and `Call` method. Use the endpoint inventory to choose an operation, then pass a `resources.Request` and decode its response into a Go type. The SDK does not invent endpoint-specific request or response schemas.
+Create one reusable client with `frontal.New(opts ...frontal.Option)`. Its service fields (`client.AI`, `client.Agents`, and the other contract groups) expose service-scoped endpoint catalogs and `Call` methods. Find an operation in the service catalog, pass that service package's `Request` type, and decode the response into a Go value. The SDK does not invent endpoint-specific request or response schemas.
 
 ## Toolchain
 
@@ -10,7 +10,7 @@ Go 1.22 or 1.23. See the root README for build and quality commands.
 
 Set `FRONTAL_API_KEY`. `FRONTAL_API_URL` defaults to `https://api.frontal.dev/v1`; `FRONTAL_ENV` defaults to `development`; `FRONTAL_TIMEOUT` accepts a Go duration or integer milliseconds; and `FRONTAL_DEBUG` accepts `true`, `false`, `1`, or `0`. Go does not read `.env` files automatically. You can override settings with `frontal.WithAPIKey`, `frontal.WithBaseURL`, `frontal.WithHTTPClient`, `frontal.WithTimeout`, and `frontal.WithMaxRetries`.
 
-The code fragments below assume `ctx` is a `context.Context`, `client` is an initialized `*frontal.Client`, and the relevant standard library and SDK packages are imported.
+The code fragments below assume `ctx` is a `context.Context`, `client` is an initialized `*frontal.Client`, and the relevant standard library packages plus `frontal` and `agents` are imported.
 
 ## Call an operation
 
@@ -20,10 +20,10 @@ if !ok {
 	return errors.New("agents health operation is missing")
 }
 var health map[string]any
-err := client.Agents.Call(ctx, resources.Request{Endpoint: endpoint}, &health)
+err := client.Agents.Call(ctx, agents.Request{Endpoint: endpoint}, &health)
 ```
 
-The path and method must match a committed contract operation. Put path values in `resources.Request.PathParams` in the order shown by the operation path, and pass query values through `resources.Request.Query`.
+The path and method must match a committed contract operation. Put path values in `agents.Request.PathParams` in the order shown by the operation path, and pass query values through `agents.Request.Query`.
 
 ## Handle errors
 
@@ -42,10 +42,11 @@ Use `frontal.IsAuthError`, `frontal.IsRateLimitError`, `frontal.IsValidationErro
 
 ## Package map
 
-- The root package provides `frontal.Client`, service namespaces, configuration options, pagination, polling, and watch helpers.
-- `pkg/resources/` provides request types, the endpoint catalog, and shared transport.
-- `pkg/authentication/` validates API keys and applies Bearer authentication.
-- `pkg/handlers/` handles requests, responses, API errors, and event streams.
-- `pkg/headers/` and `pkg/utils/` provide shared HTTP and URL helpers.
+- The root package provides `frontal.Client`, configuration options, generic requests, pagination, polling, and watch helpers.
+- Each top-level service package provides its service client, request type, and generated endpoint catalog.
+- `internal/core/` owns the shared transport and private endpoint catalog.
+- `internal/authentication/` validates API keys and applies Bearer authentication.
+- `internal/handlers/` handles requests, responses, API errors, and event streams.
+- `internal/headers/` and `internal/utils/` provide shared HTTP and URL helpers.
 
 See the runnable examples in [`example_test.go`](../example_test.go), the root README for a quickstart, and [`docs/ARCHITECTURE.md`](../docs/ARCHITECTURE.md) for request flow.

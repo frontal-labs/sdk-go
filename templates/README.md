@@ -1,6 +1,6 @@
 # Go project templates
 
-These Go `text/template` starters use the unified `frontal.Client`, its contract-backed service fields, and `pkg/resources.Request` values. They cover common project setups:
+These Go `text/template` starters use the unified `frontal.Client` and contract-backed service packages. They cover common project setups:
 
 - `cli` — one-shot command using a generated endpoint descriptor.
 - `http-service` — Go HTTP service backed by the Frontal API.
@@ -18,4 +18,4 @@ err := templates.Render(
 )
 ```
 
-`templates.Available()` lists the template names. `Render` creates a new destination directory and writes `go.mod`, `main.go`, and `README.md`. The `sdkPath` argument must be a relative path from the generated project directory to this SDK checkout. The generated `go.mod` uses a local `replace` directive so the project can build against this checkout. Remove that directive and pin the released SDK version (for example, `v1.0.0`) when moving the project elsewhere.
+`templates.Available()` lists the template names. `Render` creates a new destination directory and writes `go.mod`, `main.go`, and `README.md`. The `sdkPath` argument must be a relative path from the generated project directory to this SDK checkout. The generated `go.mod` uses a local `replace` directive so the project can build against this checkout. Remove that directive and pin the released SDK version (for example, `v2.0.0`) when moving the project elsewhere.

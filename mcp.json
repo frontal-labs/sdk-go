@@ -1,9 +1,25 @@
 {
   "name": "Frontal Go SDK",
   "language": "Go",
-  "version": "1.0.0",
-  "status": "stable",
+  "version": "2.0.0",
+  "status": "major redesign",
   "documents": [
+    {
+      "path": ".claude/rules/sdk-language.md",
+      "title": "sdk-language"
+    },
+    {
+      "path": ".cursor/README.md",
+      "title": "README"
+    },
+    {
+      "path": ".cursor/commands/review-sdk-contract.md",
+      "title": "review-sdk-contract"
+    },
+    {
+      "path": ".cursor/commands/verify-sdk-change.md",
+      "title": "verify-sdk-change"
+    },
     {
       "path": ".github/BRANCH_PROTECTION.md",
       "title": "BRANCH PROTECTION"
@@ -13,12 +29,20 @@
       "title": "PULL REQUEST TEMPLATE"
     },
     {
+      "path": ".vscode/README.md",
+      "title": "README"
+    },
+    {
       "path": "AGENTS.md",
       "title": "AGENTS"
     },
     {
       "path": "CHANGELOG.md",
       "title": "CHANGELOG"
+    },
+    {
+      "path": "CLAUDE.md",
+      "title": "CLAUDE"
     },
     {
       "path": "CODE_OF_CONDUCT.md",
@@ -43,10 +67,6 @@
     {
       "path": "SECURITY.md",
       "title": "SECURITY"
-    },
-    {
-      "path": "SKILL.md",
-      "title": "SKILL"
     },
     {
       "path": "contracts/README.md",
@@ -109,7 +129,7 @@
       "title": "SDKS GUIDE"
     },
     {
-      "path": "pkg/resources/README.md",
+      "path": "internal/core/README.md",
       "title": "README"
     },
     {
@@ -117,8 +137,296 @@
       "title": "README"
     },
     {
+      "path": "skills/SOURCES.md",
+      "title": "SOURCES"
+    },
+    {
       "path": "skills/frontal-sdk/SKILL.md",
       "title": "SKILL"
+    },
+    {
+      "path": "skills/go-code-review/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-code-review/assets/review-template.md",
+      "title": "review-template"
+    },
+    {
+      "path": "skills/go-code-review/references/WEB-SERVER.md",
+      "title": "WEB-SERVER"
+    },
+    {
+      "path": "skills/go-concurrency/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-concurrency/references/ADVANCED-PATTERNS.md",
+      "title": "ADVANCED-PATTERNS"
+    },
+    {
+      "path": "skills/go-concurrency/references/BUFFER-POOLING.md",
+      "title": "BUFFER-POOLING"
+    },
+    {
+      "path": "skills/go-concurrency/references/GOROUTINE-PATTERNS.md",
+      "title": "GOROUTINE-PATTERNS"
+    },
+    {
+      "path": "skills/go-concurrency/references/SYNC-PRIMITIVES.md",
+      "title": "SYNC-PRIMITIVES"
+    },
+    {
+      "path": "skills/go-context/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-context/references/PATTERNS.md",
+      "title": "PATTERNS"
+    },
+    {
+      "path": "skills/go-context-http/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-contract-endpoints/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-control-flow/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-control-flow/references/BLANK-IDENTIFIER.md",
+      "title": "BLANK-IDENTIFIER"
+    },
+    {
+      "path": "skills/go-control-flow/references/SWITCH-PATTERNS.md",
+      "title": "SWITCH-PATTERNS"
+    },
+    {
+      "path": "skills/go-data-structures/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-data-structures/references/SLICES.md",
+      "title": "SLICES"
+    },
+    {
+      "path": "skills/go-declarations/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-declarations/references/INITIALIZATION.md",
+      "title": "INITIALIZATION"
+    },
+    {
+      "path": "skills/go-declarations/references/IOTA.md",
+      "title": "IOTA"
+    },
+    {
+      "path": "skills/go-declarations/references/LITERALS.md",
+      "title": "LITERALS"
+    },
+    {
+      "path": "skills/go-declarations/references/SCOPE.md",
+      "title": "SCOPE"
+    },
+    {
+      "path": "skills/go-declarations/references/SHADOWING.md",
+      "title": "SHADOWING"
+    },
+    {
+      "path": "skills/go-declarations/references/STRUCTS.md",
+      "title": "STRUCTS"
+    },
+    {
+      "path": "skills/go-defensive/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-defensive/references/BOUNDARY-COPYING.md",
+      "title": "BOUNDARY-COPYING"
+    },
+    {
+      "path": "skills/go-defensive/references/GLOBAL-STATE.md",
+      "title": "GLOBAL-STATE"
+    },
+    {
+      "path": "skills/go-defensive/references/MUST-FUNCTIONS.md",
+      "title": "MUST-FUNCTIONS"
+    },
+    {
+      "path": "skills/go-defensive/references/PANIC-RECOVER.md",
+      "title": "PANIC-RECOVER"
+    },
+    {
+      "path": "skills/go-defensive/references/TIME-ENUMS-TAGS.md",
+      "title": "TIME-ENUMS-TAGS"
+    },
+    {
+      "path": "skills/go-documentation/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-documentation/references/CONVENTIONS.md",
+      "title": "CONVENTIONS"
+    },
+    {
+      "path": "skills/go-documentation/references/EXAMPLES.md",
+      "title": "EXAMPLES"
+    },
+    {
+      "path": "skills/go-documentation/references/FORMATTING.md",
+      "title": "FORMATTING"
+    },
+    {
+      "path": "skills/go-error-handling/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-error-handling/references/ERROR-FLOW.md",
+      "title": "ERROR-FLOW"
+    },
+    {
+      "path": "skills/go-error-handling/references/ERROR-TYPES.md",
+      "title": "ERROR-TYPES"
+    },
+    {
+      "path": "skills/go-error-handling/references/WRAPPING.md",
+      "title": "WRAPPING"
+    },
+    {
+      "path": "skills/go-functional-options/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-functional-options/references/OPTIONS-VS-STRUCTS.md",
+      "title": "OPTIONS-VS-STRUCTS"
+    },
+    {
+      "path": "skills/go-functions/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-functions/references/PRINTF-STRINGER.md",
+      "title": "PRINTF-STRINGER"
+    },
+    {
+      "path": "skills/go-functions/references/SIGNATURES.md",
+      "title": "SIGNATURES"
+    },
+    {
+      "path": "skills/go-generics/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-generics/references/CONSTRAINTS.md",
+      "title": "CONSTRAINTS"
+    },
+    {
+      "path": "skills/go-interfaces/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-interfaces/references/EMBEDDING.md",
+      "title": "EMBEDDING"
+    },
+    {
+      "path": "skills/go-interfaces/references/RECEIVER-TYPE.md",
+      "title": "RECEIVER-TYPE"
+    },
+    {
+      "path": "skills/go-linting/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-logging/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-logging/references/LEVELS-AND-CONTEXT.md",
+      "title": "LEVELS-AND-CONTEXT"
+    },
+    {
+      "path": "skills/go-logging/references/LOGGING-PATTERNS.md",
+      "title": "LOGGING-PATTERNS"
+    },
+    {
+      "path": "skills/go-naming/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-naming/references/IDENTIFIERS.md",
+      "title": "IDENTIFIERS"
+    },
+    {
+      "path": "skills/go-naming/references/REPETITION.md",
+      "title": "REPETITION"
+    },
+    {
+      "path": "skills/go-naming/references/VARIABLES.md",
+      "title": "VARIABLES"
+    },
+    {
+      "path": "skills/go-packages/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-packages/references/IMPORTS.md",
+      "title": "IMPORTS"
+    },
+    {
+      "path": "skills/go-packages/references/PACKAGE-SIZE.md",
+      "title": "PACKAGE-SIZE"
+    },
+    {
+      "path": "skills/go-performance/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-performance/references/BENCHMARKS.md",
+      "title": "BENCHMARKS"
+    },
+    {
+      "path": "skills/go-performance/references/STRING-OPTIMIZATION.md",
+      "title": "STRING-OPTIMIZATION"
+    },
+    {
+      "path": "skills/go-style-core/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-style-core/references/FORMATTING.md",
+      "title": "FORMATTING"
+    },
+    {
+      "path": "skills/go-style-core/references/PRINCIPLES.md",
+      "title": "PRINCIPLES"
+    },
+    {
+      "path": "skills/go-testing/SKILL.md",
+      "title": "SKILL"
+    },
+    {
+      "path": "skills/go-testing/references/INTEGRATION.md",
+      "title": "INTEGRATION"
+    },
+    {
+      "path": "skills/go-testing/references/TABLE-DRIVEN-TESTS.md",
+      "title": "TABLE-DRIVEN-TESTS"
+    },
+    {
+      "path": "skills/go-testing/references/TEST-HELPERS.md",
+      "title": "TEST-HELPERS"
+    },
+    {
+      "path": "skills/go-testing/references/TEST-ORGANIZATION.md",
+      "title": "TEST-ORGANIZATION"
+    },
+    {
+      "path": "skills/go-testing/references/VALIDATION-APIS.md",
+      "title": "VALIDATION-APIS"
     },
     {
       "path": "templates/README.md",

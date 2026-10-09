@@ -1,5 +1,5 @@
-// Package resources provides endpoint descriptors and request data for Frontal API resources.
-package resources
+// Package core provides internal endpoint descriptors and request data.
+package core
 
 import (
 	"net/http"

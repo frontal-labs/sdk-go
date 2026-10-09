@@ -8,12 +8,30 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"strconv"
 	"strings"
 	"time"
 
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	"github.com/frontal-labs/sdk-go/v2/agents"
+	"github.com/frontal-labs/sdk-go/v2/ai"
+	"github.com/frontal-labs/sdk-go/v2/audit"
+	"github.com/frontal-labs/sdk-go/v2/auth"
+	"github.com/frontal-labs/sdk-go/v2/billing"
+	"github.com/frontal-labs/sdk-go/v2/blob"
+	"github.com/frontal-labs/sdk-go/v2/connectors"
+	"github.com/frontal-labs/sdk-go/v2/data"
+	"github.com/frontal-labs/sdk-go/v2/governance"
+	"github.com/frontal-labs/sdk-go/v2/internal/core"
+	"github.com/frontal-labs/sdk-go/v2/lineage"
+	"github.com/frontal-labs/sdk-go/v2/observability"
+	"github.com/frontal-labs/sdk-go/v2/ontology"
+	"github.com/frontal-labs/sdk-go/v2/pipelines"
+	"github.com/frontal-labs/sdk-go/v2/sandbox"
+	"github.com/frontal-labs/sdk-go/v2/schedules"
+	"github.com/frontal-labs/sdk-go/v2/webhooks"
+	"github.com/frontal-labs/sdk-go/v2/workflows"
 )
 
 // Option configures a Frontal client.
@@ -37,28 +55,25 @@ type config struct {
 // Client is a shared HTTP client with a field for every service in the
 // committed SDK endpoint inventory. It is safe for concurrent use.
 type Client struct {
-	AI            *Service
-	Agents        *Service
-	Audit         *Service
-	Auth          *Service
-	Billing       *Service
-	Blob          *Service
-	Connectors    *Service
-	Data          *Service
-	Governance    *Service
-	Lineage       *Service
-	Observability *Service
-	Ontology      *Service
-	Pipelines     *Service
-	React         *Service
-	Sandbox       *Service
-	Schedules     *Service
-	Webhooks      *Service
-	Workflows     *Service
+	AI            *ai.Client
+	Agents        *agents.Client
+	Audit         *audit.Client
+	Auth          *auth.Client
+	Billing       *billing.Client
+	Blob          *blob.Client
+	Connectors    *connectors.Client
+	Data          *data.Client
+	Governance    *governance.Client
+	Lineage       *lineage.Client
+	Observability *observability.Client
+	Ontology      *ontology.Client
+	Pipelines     *pipelines.Client
+	Sandbox       *sandbox.Client
+	Schedules     *schedules.Client
+	Webhooks      *webhooks.Client
+	Workflows     *workflows.Client
 
-	// Core exposes the shared low-level request client for APIs that are not in
-	// the endpoint inventory or need direct HTTP control.
-	Core *resources.Client
+	core *core.Client
 }
 
 // New creates a client from options and FRONTAL_* environment variables.
@@ -76,58 +91,57 @@ func New(options ...Option) (*Client, error) {
 			return nil, err
 		}
 	}
-	resourceOptions := []resources.Option{
-		resources.WithBaseURL(configuration.baseURL),
-		resources.WithTimeout(configuration.timeout),
-		resources.WithMaxRetries(configuration.maxRetries),
-		resources.WithRetryDelay(configuration.retryDelay),
-		resources.WithUserAgent(configuration.userAgent),
-		resources.WithEnvironment(configuration.environment),
-		resources.WithDebug(configuration.debug),
-		resources.WithLogger(configuration.logger),
-		resources.WithMaxResponseBytes(configuration.maxResponseBytes),
-		resources.WithHeaders(configuration.headers),
+	resourceOptions := []core.Option{
+		core.WithBaseURL(configuration.baseURL),
+		core.WithTimeout(configuration.timeout),
+		core.WithMaxRetries(configuration.maxRetries),
+		core.WithRetryDelay(configuration.retryDelay),
+		core.WithUserAgent(configuration.userAgent),
+		core.WithEnvironment(configuration.environment),
+		core.WithDebug(configuration.debug),
+		core.WithLogger(configuration.logger),
+		core.WithMaxResponseBytes(configuration.maxResponseBytes),
+		core.WithHeaders(configuration.headers),
 	}
 	if configuration.httpClient != nil {
-		resourceOptions = append(resourceOptions, resources.WithHTTPClient(configuration.httpClient))
+		resourceOptions = append(resourceOptions, core.WithHTTPClient(configuration.httpClient))
 	}
-	core, err := resources.NewClient(configuration.apiKey, resourceOptions...)
+	core, err := core.NewClient(configuration.apiKey, resourceOptions...)
 	if err != nil {
 		return nil, err
 	}
-	client := &Client{Core: core}
-	client.AI = newService(core, "ai")
-	client.Agents = newService(core, "agents")
-	client.Audit = newService(core, "audit")
-	client.Auth = newService(core, "auth")
-	client.Billing = newService(core, "billing")
-	client.Blob = newService(core, "blob")
-	client.Connectors = newService(core, "connectors")
-	client.Data = newService(core, "data")
-	client.Governance = newService(core, "governance")
-	client.Lineage = newService(core, "lineage")
-	client.Observability = newService(core, "observability")
-	client.Ontology = newService(core, "ontology")
-	client.Pipelines = newService(core, "pipelines")
-	client.React = newService(core, "react")
-	client.Sandbox = newService(core, "sandbox")
-	client.Schedules = newService(core, "schedules")
-	client.Webhooks = newService(core, "webhooks")
-	client.Workflows = newService(core, "workflows")
+	client := &Client{core: core}
+	client.AI = ai.NewClient(serviceCall(core, "ai"), serviceStream(core, "ai"))
+	client.Agents = agents.NewClient(serviceCall(core, "agents"), serviceStream(core, "agents"))
+	client.Audit = audit.NewClient(serviceCall(core, "audit"), serviceStream(core, "audit"))
+	client.Auth = auth.NewClient(serviceCall(core, "auth"), serviceStream(core, "auth"))
+	client.Billing = billing.NewClient(serviceCall(core, "billing"), serviceStream(core, "billing"))
+	client.Blob = blob.NewClient(serviceCall(core, "blob"), serviceStream(core, "blob"))
+	client.Connectors = connectors.NewClient(serviceCall(core, "connectors"), serviceStream(core, "connectors"))
+	client.Data = data.NewClient(serviceCall(core, "data"), serviceStream(core, "data"))
+	client.Governance = governance.NewClient(serviceCall(core, "governance"), serviceStream(core, "governance"))
+	client.Lineage = lineage.NewClient(serviceCall(core, "lineage"), serviceStream(core, "lineage"))
+	client.Observability = observability.NewClient(serviceCall(core, "observability"), serviceStream(core, "observability"))
+	client.Ontology = ontology.NewClient(serviceCall(core, "ontology"), serviceStream(core, "ontology"))
+	client.Pipelines = pipelines.NewClient(serviceCall(core, "pipelines"), serviceStream(core, "pipelines"))
+	client.Sandbox = sandbox.NewClient(serviceCall(core, "sandbox"), serviceStream(core, "sandbox"))
+	client.Schedules = schedules.NewClient(serviceCall(core, "schedules"), serviceStream(core, "schedules"))
+	client.Webhooks = webhooks.NewClient(serviceCall(core, "webhooks"), serviceStream(core, "webhooks"))
+	client.Workflows = workflows.NewClient(serviceCall(core, "workflows"), serviceStream(core, "workflows"))
 	return client, nil
 }
 
 func configFromEnvironment() (config, error) {
 	settings := config{
 		apiKey:           os.Getenv("FRONTAL_API_KEY"),
-		baseURL:          valueOr(os.Getenv("FRONTAL_API_URL"), resources.DefaultBaseURL),
+		baseURL:          valueOr(os.Getenv("FRONTAL_API_URL"), core.DefaultBaseURL),
 		timeout:          30 * time.Second,
 		maxRetries:       3,
 		retryDelay:       time.Second,
-		userAgent:        "frontal-go/1.0.0",
+		userAgent:        "frontal-go/2.0.0",
 		environment:      valueOr(os.Getenv("FRONTAL_ENV"), "development"),
 		logger:           slog.Default(),
-		maxResponseBytes: resources.DefaultMaxResponseBytes,
+		maxResponseBytes: core.DefaultMaxResponseBytes,
 		headers:          make(http.Header),
 	}
 	if err := validateEnvironment(settings.environment); err != nil {
@@ -324,33 +338,33 @@ func WithHeaders(headers http.Header) Option {
 
 // BaseURL returns the configured API origin and path.
 func (client *Client) BaseURL() string {
-	if client == nil || client.Core == nil {
+	if client == nil || client.core == nil {
 		return ""
 	}
-	return client.Core.BaseURL()
+	return client.core.BaseURL()
 }
 
 // Request sends a JSON request to a path. Use Call for an inventory-backed operation.
 func (client *Client) Request(ctx context.Context, method, path string, body, out any) error {
-	if client == nil || client.Core == nil {
+	if client == nil || client.core == nil {
 		return errors.New("frontal: client is not configured")
 	}
-	return client.Core.Request(ctx, method, path, body, out)
+	return client.core.Request(ctx, method, path, body, out)
 }
 
 // NewRequest creates a request for a relative path, with ctx attached. The
 // client adds authentication and default headers when Do sends it.
 func (client *Client) NewRequest(ctx context.Context, method, path string, body io.Reader) (*http.Request, error) {
-	if client == nil || client.Core == nil {
+	if client == nil || client.core == nil {
 		return nil, errors.New("frontal: client is not configured")
 	}
-	return client.Core.NewRequest(ctx, method, path, body)
+	return client.core.NewRequest(ctx, method, path, body)
 }
 
 // Do sends a request through this client's configured origin and transport.
 // The caller owns and must close the response body.
 func (client *Client) Do(ctx context.Context, request *http.Request) (*http.Response, error) {
-	if client == nil || client.Core == nil {
+	if client == nil || client.core == nil {
 		return nil, errors.New("frontal: client is not configured")
 	}
 	if ctx == nil {
@@ -359,38 +373,73 @@ func (client *Client) Do(ctx context.Context, request *http.Request) (*http.Resp
 	if request == nil {
 		return nil, errors.New("frontal: request is nil")
 	}
-	return client.Core.Do(request.WithContext(ctx))
+	return client.core.Do(request.WithContext(ctx))
 }
 
 // Call dispatches an inventory-backed operation through the matching service.
-func (client *Client) Call(ctx context.Context, request resources.Request, out any) error {
-	if client == nil || client.Core == nil {
+func (client *Client) Call(ctx context.Context, request Request, out any) error {
+	if client == nil || client.core == nil {
 		return errors.New("frontal: client is not configured")
 	}
-	service := client.service(request.Endpoint.Service)
-	if service == nil {
-		return fmt.Errorf("frontal: unknown service %q", request.Endpoint.Service)
+	endpoint, ok := core.FindEndpoint(request.Endpoint.Service, request.Endpoint.Method, request.Endpoint.Path)
+	if !ok {
+		return fmt.Errorf("%w: %s %s for %s", ErrUnknownEndpoint, request.Endpoint.Method, request.Endpoint.Path, request.Endpoint.Service)
 	}
-	return service.Call(ctx, request, out)
+	return client.core.Call(ctx, core.Request{
+		Endpoint:   endpoint,
+		PathParams: request.PathParams,
+		Query:      request.Query,
+		Headers:    request.Headers,
+		Body:       request.Body,
+	}, out)
+}
+
+// Stream opens a contract-backed streaming request. The caller owns and must
+// close the returned response body.
+func (client *Client) Stream(ctx context.Context, request Request) (*http.Response, error) {
+	if client == nil || client.core == nil {
+		return nil, errors.New("frontal: client is not configured")
+	}
+	endpoint, ok := core.FindEndpoint(request.Endpoint.Service, request.Endpoint.Method, request.Endpoint.Path)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s %s for %s", ErrUnknownEndpoint, request.Endpoint.Method, request.Endpoint.Path, request.Endpoint.Service)
+	}
+	return client.core.Stream(ctx, core.Request{
+		Endpoint:   endpoint,
+		PathParams: request.PathParams,
+		Query:      request.Query,
+		Headers:    request.Headers,
+		Body:       request.Body,
+	})
 }
 
 // CloseIdleConnections closes the client's idle connections.
 func (client *Client) CloseIdleConnections() {
-	if client != nil && client.Core != nil {
-		client.Core.CloseIdleConnections()
+	if client != nil && client.core != nil {
+		client.core.CloseIdleConnections()
 	}
 }
 
-func (client *Client) service(name string) *Service {
-	for _, service := range []*Service{
-		client.AI, client.Agents, client.Audit, client.Auth, client.Billing, client.Blob,
-		client.Connectors, client.Data, client.Governance, client.Lineage, client.Observability,
-		client.Ontology, client.Pipelines, client.React, client.Sandbox, client.Schedules,
-		client.Webhooks, client.Workflows,
-	} {
-		if service != nil && strings.EqualFold(service.name, name) {
-			return service
-		}
+func serviceCall(client *core.Client, service string) func(context.Context, string, string, []string, url.Values, http.Header, any, any) error {
+	return func(ctx context.Context, method, path string, pathParams []string, query url.Values, customHeaders http.Header, body, out any) error {
+		return client.Call(ctx, core.Request{
+			Endpoint:   core.Endpoint{Service: service, Method: method, Path: path},
+			PathParams: pathParams,
+			Query:      query,
+			Headers:    customHeaders,
+			Body:       body,
+		}, out)
 	}
-	return nil
+}
+
+func serviceStream(client *core.Client, service string) func(context.Context, string, string, []string, url.Values, http.Header, any) (*http.Response, error) {
+	return func(ctx context.Context, method, path string, pathParams []string, query url.Values, customHeaders http.Header, body any) (*http.Response, error) {
+		return client.Stream(ctx, core.Request{
+			Endpoint:   core.Endpoint{Service: service, Method: method, Path: path},
+			PathParams: pathParams,
+			Query:      query,
+			Headers:    customHeaders,
+			Body:       body,
+		})
+	}
 }

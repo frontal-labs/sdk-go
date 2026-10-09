@@ -8,8 +8,7 @@ import (
 	"os/signal"
 	"syscall"
 
-	frontal "github.com/frontal-labs/sdk-go"
-	"github.com/frontal-labs/sdk-go/pkg/resources"
+	frontal "github.com/frontal-labs/sdk-go/v2"
 )
 
 func main() {
@@ -27,8 +26,8 @@ func main() {
 	if !ok {
 		log.Fatal("agent run stream endpoint is missing from the SDK catalog")
 	}
-	request := resources.Request{Endpoint: endpoint, PathParams: []string{os.Args[1]}}
-	events, err := frontal.Watch[map[string]any](ctx, client.Agents, request)
+	request := frontal.Request{Endpoint: frontal.Endpoint{Service: "agents", Method: endpoint.Method, Path: endpoint.Path}, PathParams: []string{os.Args[1]}}
+	events, err := frontal.Watch[map[string]any](ctx, client, request)
 	if err != nil {
 		log.Fatal(err)
 	}
