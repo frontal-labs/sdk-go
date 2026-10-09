@@ -22,21 +22,38 @@ The [`ExampleNew`](./example_test.go) test runs the same client call against an 
 
 ## Client and services
 
-`frontal.New(opts ...Option)` reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. Go does not load `.env` files automatically. `FRONTAL_ENV` defaults to `development`. Options include `WithAPIKey`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`, and `WithMaxRetries`.
+`frontal.New(opts ...Option)` reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. Go does not load `.env` files automatically. `FRONTAL_ENV` defaults to `development`. Options include `WithAPIKey`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`, `WithMaxRetries`, `WithUserAgent`, `WithLogger`, and `WithMaxResponseBytes`. Custom HTTP clients retain their transport and redirect policy, with redirects restricted to the configured API origin.
 
 The returned client exposes `AI`, `Agents`, `Workflows`, `Audit`, `Auth`, `Billing`, `Blob`, `Connectors`, `Data`, `Governance`, `Lineage`, `Observability`, `Ontology`, `Pipelines`, `Sandbox`, `Schedules`, and `Webhooks`. Each service lists its contract operations with `Endpoints` and sends an operation with `Call(ctx, resources.Request, out)`. Use `client.Core` or `client.Request` for direct HTTP access.
 
 ```go
-endpoint, _ := client.AI.Endpoint(http.MethodPost, "/ai/chat/completions")
-var result map[string]any
-err = client.AI.Call(ctx, resources.Request{Endpoint: endpoint, Body: map[string]any{"model": "model-id", "messages": messages}}, &result)
+type ChatMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
+type ChatRequest struct {
+	Model    string        `json:"model"`
+	Messages []ChatMessage `json:"messages"`
+}
+type ChatResponse struct {
+	ID    string `json:"id"`
+	Model string `json:"model"`
+}
+
+chat, err := frontal.BindOperation[ChatRequest, ChatResponse](client.AI, http.MethodPost, "/ai/chat/completions")
+if err != nil { log.Fatal(err) }
+result, err := chat.Call(ctx, frontal.TypedRequest[ChatRequest]{
+	Body: &ChatRequest{Model: "model-id", Messages: []ChatMessage{{Role: "user", Content: "Hello"}}},
+})
 ```
 
 [`ExampleService_Call`](./example_test.go) runs this AI operation against an `httptest.Server`.
 
+`BindOperation[Request, Response]` binds a known endpoint to caller-defined request and response types, and `TypedRequest[Body]` carries typed bodies, path values, query parameters, and headers. Define those types from the authoritative API contract. The SDK keeps `Service.Call` and `CallJSON[T]` as lower-level options. First-party operation-specific types require complete authoritative schemas for the full endpoint inventory; the current snapshots do not define them all.
+
 `FetchPage[T]` decodes collection and cursor metadata. `Watch[T]` streams JSON SSE events to a receive-only channel; cancel its context to close the request. `PollUntil[T]` polls with a caller-supplied fetch and completion check.
 
-API failures are `*frontal.APIError` values discoverable through `errors.As`, with status, code, request ID, and retryability. Use `IsAuthError`, `IsRateLimitError`, `IsValidationError`, `IsServerError`, and `IsNetworkError` to classify failures.
+API failures are `*frontal.APIError` values discoverable through `errors.As`, with status, code, request ID, retryability, and a parsed `RetryAfter` delay when supplied. Use `IsAuthError`, `IsRateLimitError`, `IsValidationError`, `IsServerError`, and `IsNetworkError` to classify failures. JSON responses are limited to 32 MiB by default; set `WithMaxResponseBytes` for APIs that return larger documents. `WithLogger` injects a `log/slog` logger for metadata-only debug logs when `WithDebug(true)` is enabled.
 
 ## Package layout
 

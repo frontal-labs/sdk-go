@@ -18,4 +18,4 @@ err := templates.Render(
 )
 ```
 
-`templates.Available()` lists the template names. `Render` creates a new destination directory and writes `go.mod`, `main.go`, and `README.md`. The `sdkPath` argument must be a relative path from the generated project directory to this SDK checkout. The generated `go.mod` uses a local `replace` directive so the project can build against this checkout. Remove that directive and pin a released SDK version (for example, `v1.0.0`) when moving the project elsewhere.
+`templates.Available()` lists the template names. `Render` creates a new destination directory and writes `go.mod`, `main.go`, and `README.md`. The `sdkPath` argument must be a relative path from the generated project directory to this SDK checkout. The generated `go.mod` uses a local `replace` directive so the project can build against this checkout. Remove that directive and pin the released SDK version (for example, `v1.0.0`) when moving the project elsewhere.

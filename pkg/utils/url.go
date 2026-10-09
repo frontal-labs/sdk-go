@@ -5,7 +5,6 @@ import (
 	"errors"
 	"fmt"
 	"net/url"
-	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -108,13 +107,7 @@ func ResolveEndpoint(base *url.URL, endpoint string) (*url.URL, error) {
 		endpointEscapedPath = strings.TrimPrefix(endpointEscapedPath, "v1")
 		endpointEscapedPath = strings.TrimLeft(endpointEscapedPath, "/")
 	}
-	joinedEscapedPath := path.Join(basePath, endpointEscapedPath)
-	if joinedEscapedPath == "." || joinedEscapedPath == "" {
-		joinedEscapedPath = "/"
-	}
-	if !strings.HasPrefix(joinedEscapedPath, "/") {
-		joinedEscapedPath = "/" + joinedEscapedPath
-	}
+	joinedEscapedPath := joinEscapedPaths(basePath, endpointEscapedPath)
 	if strings.HasSuffix(endpointPath, "/") && !strings.HasSuffix(joinedEscapedPath, "/") {
 		joinedEscapedPath += "/"
 	}
@@ -129,6 +122,21 @@ func ResolveEndpoint(base *url.URL, endpoint string) (*url.URL, error) {
 	resolved.ForceQuery = reference.ForceQuery
 	resolved.Fragment = ""
 	return &resolved, nil
+}
+
+func joinEscapedPaths(basePath, endpointPath string) string {
+	basePath = strings.TrimRight(basePath, "/")
+	endpointPath = strings.TrimLeft(endpointPath, "/")
+	switch {
+	case basePath == "" && endpointPath == "":
+		return "/"
+	case basePath == "":
+		return "/" + endpointPath
+	case endpointPath == "":
+		return basePath
+	default:
+		return basePath + "/" + endpointPath
+	}
 }
 
 // SameOrigin reports whether target uses the same scheme and authority as base.

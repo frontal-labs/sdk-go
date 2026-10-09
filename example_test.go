@@ -38,12 +38,24 @@ func ExampleNew() {
 }
 
 func ExampleService_Call() {
+	type chatRequest struct {
+		Model    string `json:"model"`
+		Messages []struct {
+			Role    string `json:"role"`
+			Content string `json:"content"`
+		} `json:"messages"`
+	}
+	type chatResponse struct {
+		Model string `json:"model"`
+	}
+
 	server := httptest.NewServer(http.HandlerFunc(func(writer http.ResponseWriter, request *http.Request) {
 		payload, _ := io.ReadAll(request.Body)
-		var input struct {
-			Model string `json:"model"`
+		var input chatRequest
+		if err := json.Unmarshal(payload, &input); err != nil {
+			http.Error(writer, "invalid request", http.StatusBadRequest)
+			return
 		}
-		_ = json.Unmarshal(payload, &input)
 		_, _ = fmt.Fprintf(writer, `{"model":%q}`, input.Model)
 	}))
 	defer server.Close()
@@ -52,13 +64,17 @@ func ExampleService_Call() {
 	if err != nil {
 		panic(err)
 	}
-	endpoint, _ := client.AI.Endpoint(http.MethodPost, "/ai/chat/completions")
-	var result map[string]string
-	err = client.AI.Call(context.Background(), resources.Request{Endpoint: endpoint, Body: map[string]any{"model": "example-model", "messages": []any{}}}, &result)
+	operation, err := frontal.BindOperation[chatRequest, chatResponse](client.AI, http.MethodPost, "/ai/chat/completions")
 	if err != nil {
 		panic(err)
 	}
-	fmt.Println(result["model"])
+	result, err := operation.Call(context.Background(), frontal.TypedRequest[chatRequest]{
+		Body: &chatRequest{Model: "example-model"},
+	})
+	if err != nil {
+		panic(err)
+	}
+	fmt.Println(result.Model)
 
 	// Output: example-model
 }

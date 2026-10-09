@@ -76,6 +76,51 @@ func CallJSON[T any](ctx context.Context, service *Service, request resources.Re
 	return result, err
 }
 
+// TypedRequest contains the caller-defined body and parameters for a bound
+// operation. A nil Body omits the JSON request body.
+type TypedRequest[Body any] struct {
+	PathParams []string
+	Query      url.Values
+	Headers    http.Header
+	Body       *Body
+}
+
+// Operation binds an endpoint to caller-defined request and response types.
+// Use BindOperation to ensure the endpoint belongs to the service contract.
+type Operation[Request, Response any] struct {
+	service  *Service
+	endpoint resources.Endpoint
+}
+
+// BindOperation binds an endpoint in service to request and response types.
+// The types are supplied by the caller from the authoritative API contract.
+func BindOperation[Request, Response any](service *Service, method, path string) (*Operation[Request, Response], error) {
+	if service == nil || service.core == nil {
+		return nil, errors.New("frontal: service is not configured")
+	}
+	endpoint, ok := service.Endpoint(method, path)
+	if !ok {
+		return nil, fmt.Errorf("%w: %s %s for %s", ErrUnknownEndpoint, method, path, service.name)
+	}
+	return &Operation[Request, Response]{service: service, endpoint: endpoint}, nil
+}
+
+// Call sends a bound operation with its request type and decodes its response
+// into the operation's response type.
+func (operation *Operation[Request, Response]) Call(ctx context.Context, request TypedRequest[Request]) (Response, error) {
+	var zero Response
+	if operation == nil || operation.service == nil || operation.service.core == nil {
+		return zero, errors.New("frontal: operation is not configured")
+	}
+	return CallJSON[Response](ctx, operation.service, resources.Request{
+		Endpoint:   operation.endpoint,
+		PathParams: request.PathParams,
+		Query:      request.Query,
+		Headers:    request.Headers,
+		Body:       request.Body,
+	})
+}
+
 // Page is one decoded page from a paginated endpoint. Pass NextCursor back in
 // the request query field using the endpoint's cursor parameter to fetch the next page.
 type Page[T any] struct {
@@ -209,10 +254,26 @@ func PollUntil[T any](ctx context.Context, interval time.Duration, fetch func(co
 	if fetch == nil || done == nil {
 		return zero, errors.New("frontal: poll fetch and completion functions are required")
 	}
+	var lastValue T
+	hasValue := false
 	for {
+		if err := ctx.Err(); err != nil {
+			if hasValue {
+				return lastValue, err
+			}
+			return zero, err
+		}
 		value, err := fetch(ctx)
 		if err != nil {
+			if hasValue && (errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded)) {
+				return lastValue, err
+			}
 			return zero, err
+		}
+		lastValue = value
+		hasValue = true
+		if err := ctx.Err(); err != nil {
+			return value, err
 		}
 		if done(value) {
 			return value, nil

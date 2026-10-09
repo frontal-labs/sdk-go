@@ -10,7 +10,10 @@ import (
 	"strings"
 )
 
-const maxEventLineBytes = 1 << 20
+const (
+	maxEventLineBytes = 1 << 20
+	maxEventBytes     = 1 << 20
+)
 
 // Event is a decoded Server-Sent Event.
 type Event[T any] struct {
@@ -35,9 +38,11 @@ func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func
 	var event Event[T]
 	var data []string
 	var lastID string
+	eventBytes := 0
 	dispatch := func() error {
 		if len(data) == 0 {
 			event = Event[T]{ID: lastID}
+			eventBytes = 0
 			return nil
 		}
 		var value T
@@ -50,6 +55,7 @@ func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func
 		}
 		event = Event[T]{ID: lastID}
 		data = data[:0]
+		eventBytes = 0
 		return nil
 	}
 
@@ -81,6 +87,14 @@ func DecodeEventStream[T any](ctx context.Context, source io.Reader, handle func
 		case "event":
 			event.Name = value
 		case "data":
+			lineBytes := len(value)
+			if len(data) > 0 {
+				lineBytes++
+			}
+			if lineBytes > maxEventBytes-eventBytes {
+				return fmt.Errorf("frontal: event data exceeds %d bytes", maxEventBytes)
+			}
+			eventBytes += lineBytes
 			data = append(data, value)
 		}
 	}

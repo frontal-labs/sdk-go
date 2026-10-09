@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"os"
 	"strconv"
@@ -19,16 +20,18 @@ import (
 type Option func(*config) error
 
 type config struct {
-	apiKey      string
-	baseURL     string
-	timeout     time.Duration
-	maxRetries  int
-	retryDelay  time.Duration
-	userAgent   string
-	environment string
-	debug       bool
-	httpClient  *http.Client
-	headers     http.Header
+	apiKey           string
+	baseURL          string
+	timeout          time.Duration
+	maxRetries       int
+	retryDelay       time.Duration
+	userAgent        string
+	environment      string
+	debug            bool
+	logger           *slog.Logger
+	maxResponseBytes int64
+	httpClient       *http.Client
+	headers          http.Header
 }
 
 // Client is a shared HTTP client with a field for every service in the
@@ -81,6 +84,8 @@ func New(options ...Option) (*Client, error) {
 		resources.WithUserAgent(configuration.userAgent),
 		resources.WithEnvironment(configuration.environment),
 		resources.WithDebug(configuration.debug),
+		resources.WithLogger(configuration.logger),
+		resources.WithMaxResponseBytes(configuration.maxResponseBytes),
 		resources.WithHeaders(configuration.headers),
 	}
 	if configuration.httpClient != nil {
@@ -114,14 +119,16 @@ func New(options ...Option) (*Client, error) {
 
 func configFromEnvironment() (config, error) {
 	settings := config{
-		apiKey:      os.Getenv("FRONTAL_API_KEY"),
-		baseURL:     valueOr(os.Getenv("FRONTAL_API_URL"), resources.DefaultBaseURL),
-		timeout:     30 * time.Second,
-		maxRetries:  3,
-		retryDelay:  time.Second,
-		userAgent:   "frontal-go/1.0.0",
-		environment: valueOr(os.Getenv("FRONTAL_ENV"), "development"),
-		headers:     make(http.Header),
+		apiKey:           os.Getenv("FRONTAL_API_KEY"),
+		baseURL:          valueOr(os.Getenv("FRONTAL_API_URL"), resources.DefaultBaseURL),
+		timeout:          30 * time.Second,
+		maxRetries:       3,
+		retryDelay:       time.Second,
+		userAgent:        "frontal-go/1.0.0",
+		environment:      valueOr(os.Getenv("FRONTAL_ENV"), "development"),
+		logger:           slog.Default(),
+		maxResponseBytes: resources.DefaultMaxResponseBytes,
+		headers:          make(http.Header),
 	}
 	if err := validateEnvironment(settings.environment); err != nil {
 		return config{}, err
@@ -195,13 +202,48 @@ func WithBaseURL(baseURL string) Option {
 	}
 }
 
-// WithHTTPClient uses a caller-provided net/http client.
+// WithHTTPClient uses a caller-provided net/http client. The SDK preserves its
+// transport and redirect policy but blocks redirects outside the API origin.
 func WithHTTPClient(client *http.Client) Option {
 	return func(configuration *config) error {
 		if client == nil {
 			return errors.New("frontal: HTTP client cannot be nil")
 		}
 		configuration.httpClient = client
+		return nil
+	}
+}
+
+// WithLogger sets the structured logger used for debug request metadata.
+func WithLogger(logger *slog.Logger) Option {
+	return func(configuration *config) error {
+		if logger == nil {
+			return errors.New("frontal: logger cannot be nil")
+		}
+		configuration.logger = logger
+		return nil
+	}
+}
+
+// WithMaxResponseBytes sets the maximum JSON response size decoded by the client.
+func WithMaxResponseBytes(maxBytes int64) Option {
+	return func(configuration *config) error {
+		if maxBytes <= 0 || maxBytes == int64(^uint64(0)>>1) {
+			return errors.New("frontal: maximum response size must be positive and below the maximum int64 value")
+		}
+		configuration.maxResponseBytes = maxBytes
+		return nil
+	}
+}
+
+// WithUserAgent sets the User-Agent header sent by the client.
+func WithUserAgent(userAgent string) Option {
+	return func(configuration *config) error {
+		userAgent = strings.TrimSpace(userAgent)
+		if userAgent == "" || strings.ContainsAny(userAgent, "\r\n") {
+			return errors.New("frontal: user agent must be non-empty and contain no newlines")
+		}
+		configuration.userAgent = userAgent
 		return nil
 	}
 }

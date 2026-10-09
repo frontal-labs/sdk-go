@@ -9,7 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 	"net"
 	"net/http"
 	"net/url"
@@ -28,12 +28,14 @@ const (
 	// DefaultBaseURL is the default Frontal API URL.
 	DefaultBaseURL = utils.DefaultBaseURL
 	// DefaultTimeout is applied when the caller does not provide an HTTP client or timeout.
-	DefaultTimeout    = 30 * time.Second
-	defaultUserAgent  = "frontal-go/1.0.0"
-	defaultMaxRetries = 2
-	maxRetriesLimit   = 10
-	defaultRetryDelay = 100 * time.Millisecond
-	maxRetryDelay     = 30 * time.Second
+	DefaultTimeout = 30 * time.Second
+	// DefaultMaxResponseBytes is the default maximum decoded JSON response size.
+	DefaultMaxResponseBytes int64 = handlers.MaxJSONResponseBytes
+	defaultUserAgent              = "frontal-go/1.0.0"
+	defaultMaxRetries             = 2
+	maxRetriesLimit               = 10
+	defaultRetryDelay             = 100 * time.Millisecond
+	maxRetryDelay                 = 30 * time.Second
 )
 
 // ErrForeignRequest is returned when a request targets another API origin.
@@ -41,27 +43,31 @@ var ErrForeignRequest = errors.New("frontal: request URL must use the configured
 
 // Client sends authenticated requests to the Frontal API. It is safe for concurrent use.
 type Client struct {
-	baseURL     *url.URL
-	apiKey      authentication.APIKey
-	transport   *httpTransport
-	userAgent   string
-	maxRetries  int
-	retryDelay  time.Duration
-	environment string
-	debug       bool
-	headers     http.Header
+	baseURL          *url.URL
+	apiKey           authentication.APIKey
+	transport        *httpTransport
+	userAgent        string
+	maxRetries       int
+	retryDelay       time.Duration
+	environment      string
+	debug            bool
+	logger           *slog.Logger
+	maxResponseBytes int64
+	headers          http.Header
 }
 
 type clientConfig struct {
-	baseURL     string
-	httpClient  *http.Client
-	timeout     time.Duration
-	userAgent   string
-	maxRetries  int
-	retryDelay  time.Duration
-	environment string
-	debug       bool
-	headers     http.Header
+	baseURL          string
+	httpClient       *http.Client
+	timeout          time.Duration
+	userAgent        string
+	maxRetries       int
+	retryDelay       time.Duration
+	environment      string
+	debug            bool
+	logger           *slog.Logger
+	maxResponseBytes int64
+	headers          http.Header
 }
 
 // Option configures a Client.
@@ -74,13 +80,15 @@ func NewClient(apiKey string, options ...Option) (*Client, error) {
 		return nil, fmt.Errorf("frontal: configure authentication: %w", err)
 	}
 	config := clientConfig{
-		baseURL:     DefaultBaseURL,
-		timeout:     DefaultTimeout,
-		userAgent:   defaultUserAgent,
-		maxRetries:  defaultMaxRetries,
-		retryDelay:  defaultRetryDelay,
-		environment: "development",
-		headers:     make(http.Header),
+		baseURL:          DefaultBaseURL,
+		timeout:          DefaultTimeout,
+		userAgent:        defaultUserAgent,
+		maxRetries:       defaultMaxRetries,
+		retryDelay:       defaultRetryDelay,
+		environment:      "development",
+		logger:           slog.Default(),
+		maxResponseBytes: DefaultMaxResponseBytes,
+		headers:          make(http.Header),
 	}
 	for _, option := range options {
 		if option == nil {
@@ -95,15 +103,17 @@ func NewClient(apiKey string, options ...Option) (*Client, error) {
 		return nil, err
 	}
 	return &Client{
-		baseURL:     baseURL,
-		apiKey:      key,
-		transport:   newHTTPTransport(config.httpClient, config.timeout),
-		userAgent:   config.userAgent,
-		maxRetries:  config.maxRetries,
-		retryDelay:  config.retryDelay,
-		environment: config.environment,
-		debug:       config.debug,
-		headers:     config.headers.Clone(),
+		baseURL:          baseURL,
+		apiKey:           key,
+		transport:        newHTTPTransport(config.httpClient, config.timeout),
+		userAgent:        config.userAgent,
+		maxRetries:       config.maxRetries,
+		retryDelay:       config.retryDelay,
+		environment:      config.environment,
+		debug:            config.debug,
+		logger:           config.logger,
+		maxResponseBytes: config.maxResponseBytes,
+		headers:          config.headers.Clone(),
 	}, nil
 }
 
@@ -156,6 +166,28 @@ func WithDebug(enabled bool) Option {
 	}
 }
 
+// WithLogger sets the structured logger used for debug request metadata.
+func WithLogger(logger *slog.Logger) Option {
+	return func(config *clientConfig) error {
+		if logger == nil {
+			return errors.New("frontal: logger cannot be nil")
+		}
+		config.logger = logger
+		return nil
+	}
+}
+
+// WithMaxResponseBytes sets the maximum JSON response size decoded by the client.
+func WithMaxResponseBytes(maxBytes int64) Option {
+	return func(config *clientConfig) error {
+		if maxBytes <= 0 || maxBytes == int64(^uint64(0)>>1) {
+			return errors.New("frontal: maximum response size must be positive and below the maximum int64 value")
+		}
+		config.maxResponseBytes = maxBytes
+		return nil
+	}
+}
+
 // WithHeaders adds headers to every request. Authorization and Host are controlled by the client.
 func WithHeaders(custom http.Header) Option {
 	return func(config *clientConfig) error {
@@ -198,7 +230,8 @@ func WithBaseURL(baseURL string) Option {
 	}
 }
 
-// WithHTTPClient uses a caller-provided HTTP client. Its timeout and redirect policy remain under caller control.
+// WithHTTPClient uses a caller-provided HTTP client. The SDK preserves its
+// transport and redirect policy but blocks redirects outside the API origin.
 func WithHTTPClient(client *http.Client) Option {
 	return func(config *clientConfig) error {
 		if client == nil {
@@ -293,7 +326,7 @@ func (client *Client) Do(request *http.Request) (*http.Response, error) {
 	response, err := client.transport.Do(request)
 	if err != nil {
 		if client.debug {
-			log.Printf("frontal: request failed method=%s path=%q", request.Method, request.URL.EscapedPath())
+			client.logger.Debug("Frontal request failed", "method", request.Method, "path", request.URL.EscapedPath())
 		}
 		return nil, fmt.Errorf("frontal: %s request failed: %w", request.Method, err)
 	}
@@ -304,7 +337,7 @@ func (client *Client) Do(request *http.Request) (*http.Response, error) {
 		response.Request = request
 	}
 	if client.debug {
-		log.Printf("frontal: response method=%s path=%q status=%d request_id=%q", request.Method, request.URL.EscapedPath(), response.StatusCode, response.Header.Get(headers.RequestID))
+		client.logger.Debug("Frontal response", "method", request.Method, "path", request.URL.EscapedPath(), "status", response.StatusCode, "request_id", response.Header.Get(headers.RequestID))
 	}
 	return response, nil
 }
@@ -380,6 +413,9 @@ func (client *Client) rawRequest(ctx context.Context, method string, request Req
 	applyCustomHeaders(httpRequest, request.Headers)
 	httpRequest.Header = headers.ApplyDefaults(httpRequest.Header, client.userAgent)
 	client.applyHeaders(httpRequest)
+	if err := ensureRequestID(httpRequest); err != nil {
+		return err
+	}
 	for attempt := 0; ; attempt++ {
 		current := httpRequest
 		if attempt > 0 {
@@ -396,7 +432,7 @@ func (client *Client) rawRequest(ctx context.Context, method string, request Req
 			continue
 		}
 		if attempt >= client.maxRetries || !isRetryableMethod(method) || !isRetryableStatus(response.StatusCode) {
-			return handlers.HandleResponse(response, out)
+			return client.handleResponse(response, out)
 		}
 		delay := client.calculateRetryDelay(attempt, response)
 		drainAndClose(response.Body)
@@ -419,6 +455,7 @@ func (client *Client) request(ctx context.Context, method, endpoint string, path
 		return err
 	}
 	mergeQuery(target, query)
+	requestID := ""
 
 	buildRequest := func() (*http.Request, error) {
 		request, err := handlers.NewJSONRequest(ctx, method, target.String(), body)
@@ -428,6 +465,14 @@ func (client *Client) request(ctx context.Context, method, endpoint string, path
 		applyCustomHeaders(request, customHeaders)
 		request.Header = headers.ApplyDefaults(request.Header, client.userAgent)
 		client.applyHeaders(request)
+		if requestID == "" {
+			if err := ensureRequestID(request); err != nil {
+				return nil, err
+			}
+			requestID = request.Header.Get(headers.RequestID)
+		} else {
+			request.Header.Set(headers.RequestID, requestID)
+		}
 		return request, nil
 	}
 	for attempt := 0; ; attempt++ {
@@ -446,7 +491,7 @@ func (client *Client) request(ctx context.Context, method, endpoint string, path
 			continue
 		}
 		if attempt >= client.maxRetries || !isRetryableMethod(method) || !isRetryableStatus(response.StatusCode) {
-			return handlers.HandleResponse(response, out)
+			return client.handleResponse(response, out)
 		}
 		delay := client.calculateRetryDelay(attempt, response)
 		drainAndClose(response.Body)
@@ -498,11 +543,14 @@ func (client *Client) Stream(ctx context.Context, request Request) (*http.Respon
 	if err != nil {
 		return nil, fmt.Errorf("frontal: stream request failed: %w", err)
 	}
+	if response == nil {
+		return nil, errors.New("frontal: HTTP stream transport returned a nil response")
+	}
 	if client.debug {
-		log.Printf("frontal: stream response method=%s path=%q status=%d request_id=%q", httpRequest.Method, httpRequest.URL.EscapedPath(), response.StatusCode, response.Header.Get(headers.RequestID))
+		client.logger.Debug("Frontal stream response", "method", httpRequest.Method, "path", httpRequest.URL.EscapedPath(), "status", response.StatusCode, "request_id", response.Header.Get(headers.RequestID))
 	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
-		return nil, handlers.HandleResponse(response, nil)
+		return nil, client.handleResponse(response, nil)
 	}
 	return response, nil
 }
@@ -600,10 +648,6 @@ func isRetryableNetworkError(err error) bool {
 	if errors.Is(err, context.Canceled) || errors.Is(err, context.DeadlineExceeded) {
 		return false
 	}
-	var urlError *url.Error
-	if errors.As(err, &urlError) {
-		return true
-	}
 	var networkError net.Error
 	return errors.As(err, &networkError) && networkError.Timeout()
 }
@@ -636,6 +680,10 @@ func (client *Client) applyHeaders(request *http.Request) {
 	}
 	request.Header.Set("X-Frontal-Environment", client.environment)
 	request.Header.Set("X-Frontal-Core", "go@1.0.0")
+}
+
+func (client *Client) handleResponse(response *http.Response, out any) error {
+	return handlers.HandleResponseLimit(response, out, client.maxResponseBytes)
 }
 
 func ensureRequestID(request *http.Request) error {

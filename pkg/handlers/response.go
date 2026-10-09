@@ -8,8 +8,10 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/frontal-labs/sdk-go/pkg/headers"
+	"github.com/frontal-labs/sdk-go/pkg/utils"
 )
 
 const (
@@ -23,6 +25,12 @@ const MaxJSONResponseBytes = 32 << 20
 // HandleResponse consumes and closes a response body, decoding JSON into out when provided.
 // If out implements io.Writer, the successful response body is copied to it unchanged.
 func HandleResponse(response *http.Response, out any) error {
+	return HandleResponseLimit(response, out, MaxJSONResponseBytes)
+}
+
+// HandleResponseLimit consumes a response and limits decoded JSON to maxBytes.
+// Successful responses copied to an io.Writer are streamed without this limit.
+func HandleResponseLimit(response *http.Response, out any, maxBytes int64) error {
 	if response == nil {
 		return errors.New("frontal: response is nil")
 	}
@@ -30,6 +38,9 @@ func HandleResponse(response *http.Response, out any) error {
 		return errors.New("frontal: response body is nil")
 	}
 	defer func() { _ = response.Body.Close() }()
+	if maxBytes <= 0 || maxBytes == int64(^uint64(0)>>1) {
+		return errors.New("frontal: JSON response limit must be positive and below the maximum int64 value")
+	}
 	if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices && response.StatusCode != http.StatusNotModified {
 		return decodeAPIError(response)
 	}
@@ -45,18 +56,18 @@ func HandleResponse(response *http.Response, out any) error {
 		}
 		return nil
 	}
-	limitedBody := &io.LimitedReader{R: response.Body, N: MaxJSONResponseBytes + 1}
+	limitedBody := &io.LimitedReader{R: response.Body, N: maxBytes + 1}
 	decoder := json.NewDecoder(limitedBody)
 	if err := decoder.Decode(out); err != nil {
 		if limitedBody.N == 0 {
-			return fmt.Errorf("frontal: JSON response exceeds %d bytes", MaxJSONResponseBytes)
+			return fmt.Errorf("frontal: JSON response exceeds %d bytes", maxBytes)
 		}
 		return fmt.Errorf("frontal: decode response body: %w", err)
 	}
 	var trailing any
 	decodeErr := decoder.Decode(&trailing)
 	if limitedBody.N == 0 {
-		return fmt.Errorf("frontal: JSON response exceeds %d bytes", MaxJSONResponseBytes)
+		return fmt.Errorf("frontal: JSON response exceeds %d bytes", maxBytes)
 	}
 	if !errors.Is(decodeErr, io.EOF) {
 		if decodeErr == nil {
@@ -81,6 +92,9 @@ func decodeAPIError(response *http.Response) error {
 		StatusCode: response.StatusCode,
 		RequestID:  response.Header.Get(headers.RequestID),
 		Retryable:  retryableStatus(response.StatusCode),
+	}
+	if delay, ok := utils.RetryAfter(response.Header.Get("Retry-After"), time.Now()); ok {
+		apiError.RetryAfter = delay
 	}
 	if !decodeErrorPayload(body, apiError) && len(body) > 0 {
 		message := strings.TrimSpace(string(bytes.TrimSpace(body)))

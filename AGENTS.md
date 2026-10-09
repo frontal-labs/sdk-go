@@ -19,7 +19,7 @@ This is one Go module. The SDK lives under `pkg/`; use the committed OpenAPI sna
 
 Pass `context.Context` through network operations and wrap errors with `%w`. Use `net/http/httptest` for deterministic HTTP tests. Keep API keys out of URLs, logs, and errors. Do not invent endpoint-specific method names or response schemas; use the committed contracts. Regenerate the endpoint catalog with `go generate ./pkg/resources` after updating the inventory.
 
-The module path is `github.com/frontal-labs/sdk-go`. The client defaults to `https://api.frontal.dev/v1`; Go does not load `.env` files automatically.
+The module path is `github.com/frontal-labs/sdk-go` (v1). The client defaults to `https://api.frontal.dev/v1`. Go does not load `.env` files automatically.
 
 ## Key commands
 

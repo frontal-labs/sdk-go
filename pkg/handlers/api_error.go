@@ -4,16 +4,19 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"time"
 )
 
 // APIError describes an unsuccessful response from the Frontal API.
 type APIError struct {
-	StatusCode int             `json:"-"`
-	Code       string          `json:"code,omitempty"`
-	Type       string          `json:"type,omitempty"`
-	Message    string          `json:"message,omitempty"`
-	RequestID  string          `json:"request_id,omitempty"`
-	Retryable  bool            `json:"retryable"`
+	StatusCode int    `json:"-"`
+	Code       string `json:"code,omitempty"`
+	Type       string `json:"type,omitempty"`
+	Message    string `json:"message,omitempty"`
+	RequestID  string `json:"request_id,omitempty"`
+	Retryable  bool   `json:"retryable"`
+	// RetryAfter is the parsed Retry-After delay; zero means no usable delay.
+	RetryAfter time.Duration   `json:"-"`
 	Docs       string          `json:"docs,omitempty"`
 	Fields     json.RawMessage `json:"fields,omitempty"`
 	Details    json.RawMessage `json:"details,omitempty"`
