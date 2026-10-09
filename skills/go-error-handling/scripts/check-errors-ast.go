@@ -1,3 +1,4 @@
+// Package main implements the error handling checker command.
 package main
 
 import (
@@ -32,7 +33,7 @@ type options struct {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stdout, `check-errors.sh v%s - Check Go code for common error handling anti-patterns
+	fmt.Printf(`check-errors.sh v%s - Check Go code for common error handling anti-patterns
 
 USAGE
     bash check-errors.sh [options] [path]
