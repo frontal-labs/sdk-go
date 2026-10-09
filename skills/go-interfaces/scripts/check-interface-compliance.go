@@ -1,3 +1,4 @@
+// Package main implements the interface compliance checker command.
 package main
 
 import (
@@ -58,7 +59,7 @@ type options struct {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stdout, `check-interface-compliance.sh v%s - Find likely missing compile-time interface compliance verifications
+	fmt.Printf(`check-interface-compliance.sh v%s - Find likely missing compile-time interface compliance verifications
 
 USAGE
     bash check-interface-compliance.sh [options] [path]

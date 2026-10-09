@@ -55,6 +55,8 @@ func (w *Widget) Close() error {
 	return nil
 }
 
+// NewWidgetLegacy is retained to illustrate a deprecated compatibility wrapper.
+//
 // Deprecated: Use [NewWidget] with functional options instead.
 func NewWidgetLegacy(name string) *Widget {
 	return NewWidget(name)

@@ -1,3 +1,5 @@
+//go:build ignore
+
 package example_test
 
 import "testing"

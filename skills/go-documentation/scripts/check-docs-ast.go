@@ -1,3 +1,4 @@
+// Package main implements the documentation checker command.
 package main
 
 import (
@@ -40,7 +41,7 @@ type packageInfo struct {
 }
 
 func usage() {
-	fmt.Fprintf(os.Stdout, `check-docs.sh v%s - Check for missing doc comments on exported Go symbols
+	fmt.Printf(`check-docs.sh v%s - Check for missing doc comments on exported Go symbols
 
 USAGE
     bash check-docs.sh [options] [path]
