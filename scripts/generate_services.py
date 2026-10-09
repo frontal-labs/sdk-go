@@ -2,6 +2,7 @@
 """Generate service-scoped Go clients and endpoint catalogs."""
 
 import json
+import subprocess
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -121,6 +122,10 @@ for service, operations in sorted(INVENTORY.items()):
     )
     (directory / "client.go").write_text(
         CLIENT.format(package=package, service=service), encoding="utf-8"
+    )
+    subprocess.run(
+        ["gofmt", "-w", str(directory / "client.go"), str(directory / "endpoints.go")],
+        check=True,
     )
 
 print(f"Wrote {len(INVENTORY)} service packages")
