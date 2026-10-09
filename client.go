@@ -28,7 +28,6 @@ import (
 	"github.com/frontal-labs/sdk-go/v2/observability"
 	"github.com/frontal-labs/sdk-go/v2/ontology"
 	"github.com/frontal-labs/sdk-go/v2/pipelines"
-	"github.com/frontal-labs/sdk-go/v2/sandbox"
 	"github.com/frontal-labs/sdk-go/v2/schedules"
 	"github.com/frontal-labs/sdk-go/v2/webhooks"
 	"github.com/frontal-labs/sdk-go/v2/workflows"
@@ -68,7 +67,6 @@ type Client struct {
 	Observability *observability.Client
 	Ontology      *ontology.Client
 	Pipelines     *pipelines.Client
-	Sandbox       *sandbox.Client
 	Schedules     *schedules.Client
 	Webhooks      *webhooks.Client
 	Workflows     *workflows.Client
@@ -124,7 +122,6 @@ func New(options ...Option) (*Client, error) {
 	client.Observability = observability.NewClient(serviceCall(core, "observability"), serviceStream(core, "observability"))
 	client.Ontology = ontology.NewClient(serviceCall(core, "ontology"), serviceStream(core, "ontology"))
 	client.Pipelines = pipelines.NewClient(serviceCall(core, "pipelines"), serviceStream(core, "pipelines"))
-	client.Sandbox = sandbox.NewClient(serviceCall(core, "sandbox"), serviceStream(core, "sandbox"))
 	client.Schedules = schedules.NewClient(serviceCall(core, "schedules"), serviceStream(core, "schedules"))
 	client.Webhooks = webhooks.NewClient(serviceCall(core, "webhooks"), serviceStream(core, "webhooks"))
 	client.Workflows = workflows.NewClient(serviceCall(core, "workflows"), serviceStream(core, "workflows"))

@@ -2272,22 +2272,8 @@
       "method": "STREAM",
       "path": "/data/pipelines/pipeline-runs/{param}"
     }
-  ],
-  "sandbox": [
-    {
-      "method": "GET",
-      "path": "/sandbox/languages"
-    },
-    {
-      "method": "POST",
-      "path": "/sandbox/self-test"
-    },
-    {
-      "method": "POST",
-      "path": "/sandbox/submit"
-    }
-  ],
-  "schedules": [
+   ],
+   "schedules": [
     {
       "method": "DELETE",
       "path": "/workflows/schedules/{param}"
