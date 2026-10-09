@@ -81,7 +81,7 @@ func TestServiceCallRejectsAnEndpointOutsideItsContract(t *testing.T) {
 		t.Fatalf("create client: %v", err)
 	}
 	err = client.Call(context.Background(), frontal.Request{
-		Endpoint: frontal.Endpoint{Service: "workflows", Method: http.MethodGet, Path: "/workflows"},
+		Endpoint: frontal.Endpoint{Service: "workflows", Method: http.MethodGet, Path: "/workflows/not-a-contract-route"},
 	}, nil)
 	if !errors.Is(err, frontal.ErrUnknownEndpoint) {
 		t.Fatalf("expected unknown endpoint error, got %v", err)
