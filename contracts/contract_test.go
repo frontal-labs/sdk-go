@@ -191,6 +191,8 @@ func hasService(client *frontal.Client, name string) bool {
 		return client.Connectors != nil
 	case "data":
 		return client.Data != nil
+	case "functions":
+		return client.Functions != nil
 	case "governance":
 		return client.Governance != nil
 	case "lineage":
