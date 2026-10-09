@@ -1,3 +1,4 @@
+// Package agents provides types and functions for working with Frontal Agents.
 package agents
 
 import (
@@ -14,9 +15,13 @@ import (
 type AgentStatus string
 
 const (
-	AgentStatusDraft      AgentStatus = "draft"
-	AgentStatusActive     AgentStatus = "active"
-	AgentStatusPaused     AgentStatus = "paused"
+	// AgentStatusDraft represents the draft status of an agent.
+	AgentStatusDraft AgentStatus = "draft"
+	// AgentStatusActive represents the active status of an agent.
+	AgentStatusActive AgentStatus = "active"
+	// AgentStatusPaused represents the paused status of an agent.
+	AgentStatusPaused AgentStatus = "paused"
+	// AgentStatusDeprecated represents the deprecated status of an agent.
 	AgentStatusDeprecated AgentStatus = "deprecated"
 )
 
@@ -135,9 +140,13 @@ type Page struct {
 type ExecutionStatus string
 
 const (
-	ExecutionStatusRunning   ExecutionStatus = "running"
+	// ExecutionStatusRunning represents the running status of an agent execution.
+	ExecutionStatusRunning ExecutionStatus = "running"
+	// ExecutionStatusCompleted represents the completed status of an agent execution.
 	ExecutionStatusCompleted ExecutionStatus = "completed"
-	ExecutionStatusFailed    ExecutionStatus = "failed"
+	// ExecutionStatusFailed represents the failed status of an agent execution.
+	ExecutionStatusFailed ExecutionStatus = "failed"
+	// ExecutionStatusEscalated represents the escalated status of an agent execution.
 	ExecutionStatusEscalated ExecutionStatus = "escalated"
 )
 
