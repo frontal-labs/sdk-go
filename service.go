@@ -225,7 +225,7 @@ func PollUntil[T any](ctx context.Context, interval time.Duration, fetch func(co
 		select {
 		case <-ctx.Done():
 			timer.Stop()
-			return zero, ctx.Err()
+			return lastValue, ctx.Err()
 		case <-timer.C:
 		}
 	}
