@@ -22,6 +22,7 @@ import (
 	"github.com/frontal-labs/sdk-go/v2/blob"
 	"github.com/frontal-labs/sdk-go/v2/connectors"
 	"github.com/frontal-labs/sdk-go/v2/data"
+	"github.com/frontal-labs/sdk-go/v2/functions"
 	"github.com/frontal-labs/sdk-go/v2/governance"
 	"github.com/frontal-labs/sdk-go/v2/internal/core"
 	"github.com/frontal-labs/sdk-go/v2/lineage"
@@ -51,8 +52,8 @@ type config struct {
 	headers          http.Header
 }
 
-// Client is a shared HTTP client with a field for every service in the
-// committed SDK endpoint inventory. It is safe for concurrent use.
+// Client is a shared HTTP client with typed clients for Frontal API services.
+// It is safe for concurrent use.
 type Client struct {
 	AI            *ai.Client
 	Agents        *agents.Client
@@ -62,6 +63,7 @@ type Client struct {
 	Blob          *blob.Client
 	Connectors    *connectors.Client
 	Data          *data.Client
+	Functions     *functions.Client
 	Governance    *governance.Client
 	Lineage       *lineage.Client
 	Observability *observability.Client
@@ -117,6 +119,7 @@ func New(options ...Option) (*Client, error) {
 	client.Blob = blob.NewClient(serviceCall(core, "blob"), serviceStream(core, "blob"))
 	client.Connectors = connectors.NewClient(serviceCall(core, "connectors"), serviceStream(core, "connectors"))
 	client.Data = data.NewClient(serviceCall(core, "data"), serviceStream(core, "data"))
+	client.Functions = functions.NewClient(serviceCall(core, "functions"), serviceStream(core, "functions"))
 	client.Governance = governance.NewClient(serviceCall(core, "governance"), serviceStream(core, "governance"))
 	client.Lineage = lineage.NewClient(serviceCall(core, "lineage"), serviceStream(core, "lineage"))
 	client.Observability = observability.NewClient(serviceCall(core, "observability"), serviceStream(core, "observability"))

@@ -42,11 +42,66 @@ func main() {
 
 Import `github.com/frontal-labs/sdk-go/v2/agents` for the service request type. The example in [`example_test.go`](./example_test.go) runs against an `httptest.Server`.
 
+## Functions
+
+The Functions client shares the root client's Bearer authentication, base URL, timeout, and retry settings. Create functions directly from a `functions.FunctionDefinition`, then invoke them with a JSON object:
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	"os"
+	"time"
+
+	frontal "github.com/frontal-labs/sdk-go/v2"
+	"github.com/frontal-labs/sdk-go/v2/functions"
+)
+
+func main() {
+	client, err := frontal.New(
+		frontal.WithAPIKey(os.Getenv("FRONTAL_API_KEY")),
+		frontal.WithBaseURL("https://api.frontal.dev/v1"),
+		frontal.WithTimeout(30*time.Second),
+		frontal.WithMaxRetries(3),
+	)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	ctx := context.Background()
+	created, err := client.Functions.Create(ctx, functions.FunctionDefinition{
+		Name:       "hello",
+		Runtime:    functions.RuntimeNodeJS22,
+		Entrypoint: "index.handler",
+		InputSchema: map[string]any{
+			"type": "object",
+			"properties": map[string]any{"name": map[string]any{"type": "string"}},
+		},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	result, err := client.Functions.Invoke(ctx, functions.FunctionInvocationInput{
+		FunctionID: created.ID,
+		Input:      map[string]any{"name": "Ada"},
+	})
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Printf("execution %s result: %#v", result.ExecutionID, result.Result)
+}
+```
+
+The shared client defaults to a 30-second timeout and three retries for safe GET requests. Configure a different base URL, timeout, or retry count with `WithBaseURL`, `WithTimeout`, and `WithMaxRetries`.
+
 ## Client and services
 
 `frontal.New(opts ...frontal.Option)` reads `FRONTAL_API_KEY`, `FRONTAL_API_URL`, `FRONTAL_ENV`, `FRONTAL_DEBUG`, and `FRONTAL_TIMEOUT`. Go does not load `.env` files automatically. `FRONTAL_ENV` defaults to `development`. Options include `WithAPIKey`, `WithBaseURL`, `WithHTTPClient`, `WithTimeout`, `WithMaxRetries`, `WithUserAgent`, `WithLogger`, and `WithMaxResponseBytes`.
 
-The client exposes one service client for each contract group. Each service package owns its endpoint catalog and provides `Endpoints`, `Endpoint`, `Call`, and `Stream`. Use service-scoped calls as the contract-checked API while operation-specific types are added from stable schemas. `client.Request` supports direct HTTP access outside the inventory.
+The client exposes one service client for each supported API group. Inventory-backed service packages own generated endpoint catalogs and provide `Endpoints`, `Endpoint`, `Call`, and `Stream`; the Functions package also provides typed operations. `client.Request` supports direct HTTP access outside the inventory.
 
 `frontal.BindOperation[Request, Response]` binds a known route to caller-defined types. `frontal.Field[T]`, `frontal.F`, and `frontal.Null[T]()` represent omitted, explicit, and null request fields. `frontal.ExtraFields` preserves response properties not represented in a local struct.
 

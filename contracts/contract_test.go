@@ -31,7 +31,6 @@ func TestOpenAPIOperationsResolveToHTTPRequests(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, filename := range []string{"openapi/api.openapi.json", "openapi/ai.openapi.generated.json"} {
-		filename := filename
 		t.Run(filename, func(t *testing.T) {
 			contents, err := snapshots.ReadFile(filename)
 			if err != nil {
@@ -191,6 +190,8 @@ func hasService(client *frontal.Client, name string) bool {
 		return client.Connectors != nil
 	case "data":
 		return client.Data != nil
+	case "functions":
+		return client.Functions != nil
 	case "governance":
 		return client.Governance != nil
 	case "lineage":
