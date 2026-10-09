@@ -201,8 +201,6 @@ func hasService(client *frontal.Client, name string) bool {
 		return client.Ontology != nil
 	case "pipelines":
 		return client.Pipelines != nil
-	case "sandbox":
-		return client.Sandbox != nil
 	case "schedules":
 		return client.Schedules != nil
 	case "webhooks":
